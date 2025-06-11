@@ -21,7 +21,7 @@ std::vector<Chunk*> World::loaded_chunks() {
 }
 
 Region* World::get_loaded_region(int rx, int rz) {
-    if (auto found = regions.find({ rz, rz}); found != regions.end()) {
+    if (auto found = regions.find({ rx, rz}); found != regions.end()) {
         return &*found->second;
     }
     return nullptr;
@@ -34,22 +34,32 @@ Region* World::load_region(int rx, int rz) {
     return &*r;
 }
 
-Chunk* World::get_loaded_chunk(int x, int z) {
-    int rx = x / 32;
-    int rz = z / 32;
+static int to_region_coordinate(int c) {
+    if (c < 0)
+        return (c - 31) / 32;
+    return c / 32;
+}
+
+static std::tuple<int, int> to_region_coordinates(int cx, int cz) {
+    int rx = to_region_coordinate(cx);
+    int rz = to_region_coordinate(cz);
+    return { rx, rz };
+}
+
+Chunk* World::get_loaded_chunk(int cx, int cz) {
+    auto [rx, rz] = to_region_coordinates(cx, cz);
     auto found = get_loaded_region(rx, rz);
     if (found)
-        return found->get_chunk(x & 0x1f, z & 0x1f);
+        return found->get_chunk(cx & 0x1f, cz & 0x1f);
     return nullptr;
 }
 
-Chunk* World::load_chunk(int x, int z) {
-    int rx = x / 32;
-    int rz = z / 32;
+Chunk* World::load_chunk(int cx, int cz) {
+    auto [rx, rz] = to_region_coordinates(cx, cz);
     Region* r = get_loaded_region(rx, rz);
     if (!r)
         r = load_region(rx, rz);
-    return r->load_chunk(x & 0x1f, z & 0x1f);
+    return r->load_chunk(cx, cz);
 }
 
 void World::unload_chunk(Chunk* chunk) {
@@ -76,6 +86,7 @@ Region::~Region() {
 }
 
 Chunk* Region::get_chunk(unsigned int rcx, unsigned int rcz) {
+    assert(rcx >= 0 && rcz >= 0);
     assert(rcx < 32 && rcz < 32);
     auto found = chunks.find({(int) rcx, (int) rcz});
     if (found != chunks.end())
@@ -103,6 +114,7 @@ void Region::unload_chunk(Chunk* chunk) {
 Chunk::Chunk(Region& r, int cx, int cz) : region(r), cx(cx), cz(cz) {
     unsigned rcx = cx & 0x1f;
     unsigned rcz = cz & 0x1f;
+    //printf("%d %d\n", cx, cz);
     if (r.enkl_region) {
         enkl_chunk = cunk_open_mcchunk(r.enkl_region, rcx, rcz);
         if (enkl_chunk) {

@@ -19,7 +19,7 @@ struct {
 
 Camera camera;
 CameraFreelookState camera_state = {
-    .fly_speed = 10.0f,
+    .fly_speed = 100.0f,
     .mouse_sensitivity = 1,
 };
 CameraInput camera_input;
@@ -77,7 +77,7 @@ struct Shaders {
         VkPipelineRasterizationStateCreateInfo rasterization {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
 
-            .polygonMode = VK_POLYGON_MODE_LINE,
+            .polygonMode = VK_POLYGON_MODE_FILL,
             .cullMode = VK_CULL_MODE_BACK_BIT,
             .frontFace = VK_FRONT_FACE_CLOCKWISE,
 
@@ -260,7 +260,7 @@ int main(int argc, char** argv) {
                 int player_chunk_x = camera.position.x / 16;
                 int player_chunk_z = camera.position.z / 16;
 
-                int radius = 8;
+                int radius = 24;
                 for (int dx = -radius; dx <= radius; dx++) {
                     for (int dz = -radius; dz <= radius; dz++) {
                         load_chunk(player_chunk_x + dx, player_chunk_z + dz);
@@ -268,7 +268,14 @@ int main(int argc, char** argv) {
                 }
 
                 for (auto chunk : world.loaded_chunks()) {
-                    if (abs(chunk->cx - player_chunk_x) > radius && abs(chunk->cz - player_chunk_z) > radius) {
+                    if (abs(chunk->cx - player_chunk_x) > radius || abs(chunk->cz - player_chunk_z) > radius) {
+                        std::unique_ptr<ChunkMesh> stolen = std::move(chunk->mesh);
+                        if (stolen) {
+                            ChunkMesh* released = stolen.release();
+                            context.frame().addCleanupAction([=]() {
+                                delete released;
+                            });
+                        }
                         world.unload_chunk(chunk);
                         continue;
                     }

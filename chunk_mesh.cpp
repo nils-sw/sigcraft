@@ -184,8 +184,8 @@ ChunkMesh::ChunkMesh(imr::Device& d, ChunkNeighbors& n) {
     std::vector<float> g;
     chunk_mesh(n.neighbours[1][1], n, g, &num_verts);
 
-    fprintf(stderr, "%zu vertices, totalling %zu KiB of data\n", num_verts, num_verts * sizeof(float) * 5 / 1024);
-    fflush(stderr);
+    //fprintf(stderr, "%zu vertices, totalling %zu KiB of data\n", num_verts, num_verts * sizeof(float) * 5 / 1024);
+    //fflush(stderr);
 
     size_t buffer_size = g.size() * sizeof(float);
     void* buffer = g.data();

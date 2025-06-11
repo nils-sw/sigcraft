@@ -8,7 +8,7 @@ BlockData chunk_get_block_data(const ChunkData* chunk, unsigned x, unsigned y, u
     const ChunkSection* section = chunk->sections[y / CUNK_CHUNK_SIZE];
     y %= CUNK_CHUNK_SIZE;
     if (section)
-        return section->block_data[y][z][x];
+        return section->block_data[y][x][z];
     return air_data;
 }
 
@@ -19,5 +19,5 @@ void chunk_set_block_data(ChunkData* chunk, unsigned x, unsigned y, unsigned z, 
     y %= CUNK_CHUNK_SIZE;
     if (!section)
         section = chunk->sections[sid] = calloc(CUNK_CHUNK_SIZE * CUNK_CHUNK_SIZE * CUNK_CHUNK_SIZE, sizeof(BlockData));
-    section->block_data[y][z][x] = data;
+    section->block_data[y][x][z] = data;
 }
