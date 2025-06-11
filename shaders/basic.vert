@@ -6,8 +6,14 @@
 layout(location = 0)
 out vec3 color;
 
+layout(location = 1)
+out vec3 normal;
+
 layout(location = 0)
-in vec3 vertex;
+in ivec3 vertexIn;
+
+layout(location = 1)
+in vec3 normalIn;
 
 layout(scalar, push_constant) uniform T {
     mat4 matrix;
@@ -17,7 +23,8 @@ layout(scalar, push_constant) uniform T {
 
 void main() {
     mat4 matrix = push_constants.matrix;
-    gl_Position = matrix * vec4(vertex + push_constants.chunk_position * 16, 1.0);
+    gl_Position = matrix * vec4(vec3(vertexIn + push_constants.chunk_position * 16), 1.0);
     int primid = gl_VertexIndex / 6;
     color = vec3(primid % 2, (primid % 4) / 4.0, (primid % 3) / 3.0);
+    normal = normalIn;
 }

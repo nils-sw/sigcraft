@@ -21,7 +21,7 @@ static void decode_pre_flattening(ChunkData* dst_chunk, int section_y, const NBT
         int8_t block_state = arr->arr[pos];
         assert(pos < arr->count);
 
-        chunk_set_block_data(dst_chunk, x, y + section_y * 16, z, (block_state == 0) ? 0 : 1);
+        chunk_set_block_data(dst_chunk, z, y + section_y * 16, x, (block_state == 0) ? 0 : 1);
     }
 }
 
@@ -65,7 +65,7 @@ static void decode_post_flattening(ChunkData* dst_chunk, int section_y, const NB
 
         assert(block_state < palette_size);
         block_state %= palette_size;
-        chunk_set_block_data(dst_chunk, x, y + section_y * 16, z, is_air[block_state] ? 0 : 1);
+        chunk_set_block_data(dst_chunk, z, y + section_y * 16, x, is_air[block_state] ? 0 : 1);
     }
 }
 

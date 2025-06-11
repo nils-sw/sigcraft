@@ -52,7 +52,7 @@ struct Shaders {
         VkVertexInputBindingDescription bindings[] = {
             {
                 .binding = 0,
-                .stride = 5 * sizeof(float),
+                .stride = sizeof(ChunkMesh::Vertex),
                 .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
             },
         };
@@ -61,8 +61,14 @@ struct Shaders {
             {
                 .location = 0,
                 .binding = 0,
-                .format = VK_FORMAT_R32G32B32A32_SFLOAT,
+                .format = VK_FORMAT_R16G16B16_SINT,
                 .offset = 0,
+            },
+            {
+                .location = 1,
+                .binding = 0,
+                .format = VK_FORMAT_R8G8B8_UNORM,
+                .offset = offsetof(ChunkMesh::Vertex, nnx),
             },
         };
 
