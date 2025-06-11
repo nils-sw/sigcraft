@@ -9,7 +9,7 @@
 
 #define MC_1_18_DATA_VERSION 2825
 
-static void decode_pre_flattening(Chunk* dst_chunk, int section_y, const NBT_Object* blocks_data) {
+static void decode_pre_flattening(ChunkData* dst_chunk, int section_y, const NBT_Object* blocks_data) {
     if (!blocks_data)
         return;
     const NBT_ByteArray* arr = cunk_nbt_extract_byte_array(blocks_data);
@@ -25,7 +25,7 @@ static void decode_pre_flattening(Chunk* dst_chunk, int section_y, const NBT_Obj
     }
 }
 
-static void decode_post_flattening(Chunk* dst_chunk, int section_y, const NBT_Object* block_states, const NBT_Object* palette, bool can_straddle_boundary) {
+static void decode_post_flattening(ChunkData* dst_chunk, int section_y, const NBT_Object* block_states, const NBT_Object* palette, bool can_straddle_boundary) {
     if (!(block_states && palette))
         return;
     // cunk_print_nbt(p, palette);
@@ -69,7 +69,7 @@ static void decode_post_flattening(Chunk* dst_chunk, int section_y, const NBT_Ob
     }
 }
 
-void load_from_mcchunk(Chunk* dst_chunk, McChunk* chunk) {
+void load_from_mcchunk(ChunkData* dst_chunk, McChunk* chunk) {
     McDataVersion ver = cunk_mcchunk_get_data_version(chunk);
     bool post_1_18 = ver > MC_1_18_DATA_VERSION;
 

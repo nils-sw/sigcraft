@@ -6,15 +6,14 @@
 #include <cstddef>
 
 struct ChunkNeighbors {
-    const Chunk* neighbours[3][3];
+    const ChunkData* neighbours[3][3];
 };
 
-typedef struct {
+struct ChunkMesh {
     std::unique_ptr<imr::Buffer> buf;
     size_t num_verts;
-    int x, y, z;
 
-    void update(imr::Device&, ChunkNeighbors& n, const Chunk*);
-} ChunkMesh;
+    ChunkMesh(imr::Device&, ChunkNeighbors& n);
+};
 
 #endif

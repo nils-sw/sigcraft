@@ -110,7 +110,7 @@ static void paste_plus_z_face(std::vector<float>& g, unsigned x, unsigned y, uns
 
 #undef V
 
-static BlockData access_safe(const Chunk* chunk, ChunkNeighbors& neighbours, int x, int y, int z) {
+static BlockData access_safe(const ChunkData* chunk, ChunkNeighbors& neighbours, int x, int y, int z) {
     unsigned int i, k;
     if (x < 0) {
         i = 0;
@@ -141,7 +141,7 @@ static BlockData access_safe(const Chunk* chunk, ChunkNeighbors& neighbours, int
     return air_data;
 }
 
-void chunk_mesh(const Chunk* chunk, ChunkNeighbors& neighbours, std::vector<float>& g, size_t* num_verts) {
+void chunk_mesh(const ChunkData* chunk, ChunkNeighbors& neighbours, std::vector<float>& g, size_t* num_verts) {
     *num_verts = 0;
     for (int section = 0; section < CUNK_CHUNK_SECTIONS_COUNT; section++) {
         for (int x = 0; x < CUNK_CHUNK_SIZE; x++)
@@ -180,23 +180,17 @@ void chunk_mesh(const Chunk* chunk, ChunkNeighbors& neighbours, std::vector<floa
     }
 }
 
-void ChunkMesh::update(imr::Device& d, ChunkNeighbors& n, const Chunk* chunk) {
-    buf.reset();
+ChunkMesh::ChunkMesh(imr::Device& d, ChunkNeighbors& n) {
+    std::vector<float> g;
+    chunk_mesh(n.neighbours[1][1], n, g, &num_verts);
 
-    x = chunk->x;
-    y = chunk->y;
-    z = chunk->z;
+    fprintf(stderr, "%zu vertices, totalling %zu KiB of data\n", num_verts, num_verts * sizeof(float) * 5 / 1024);
+    fflush(stderr);
 
-    if (chunk) {
-        std::vector<float> g;
-        chunk_mesh(chunk, n, g, &num_verts);
+    size_t buffer_size = g.size() * sizeof(float);
+    void* buffer = g.data();
 
-        fprintf(stderr, "%zu vertices, totalling %zu KiB of data\n", num_verts, num_verts * sizeof(float) * 5 / 1024);
-        fflush(stderr);
-
-        size_t buffer_size = g.size() * sizeof(float);
-        void* buffer = g.data();
-
+    if (buffer_size > 0) {
         buf = std::make_unique<imr::Buffer>(d, buffer_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
         buf->uploadDataSync(0, buffer_size, buffer);
     }

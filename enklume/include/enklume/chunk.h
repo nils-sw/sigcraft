@@ -19,13 +19,12 @@ typedef struct {
 } ChunkSection;
 
 typedef struct {
-    int x, y, z;
     ChunkSection* sections[CUNK_CHUNK_SECTIONS_COUNT];
-} Chunk;
+} ChunkData;
 
-BlockData chunk_get_block_data(const Chunk*, unsigned x, unsigned y, unsigned z);
-void chunk_set_block_data(Chunk*, unsigned x, unsigned y, unsigned z, BlockData);
+BlockData chunk_get_block_data(const ChunkData*, unsigned x, unsigned y, unsigned z);
+void chunk_set_block_data(ChunkData*, unsigned x, unsigned y, unsigned z, BlockData);
 
-void load_from_mcchunk(Chunk* dst_chunk, McChunk* chunk);
+void load_from_mcchunk(ChunkData* dst_chunk, McChunk* chunk);
 
 #endif

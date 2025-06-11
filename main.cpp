@@ -1,14 +1,7 @@
 #include "imr/imr.h"
 #include "imr/util.h"
 
-extern "C" {
-
-#include "enklume/chunk.h"
-#include "enklume/enklume.h"
-
-}
-
-#include "chunk_mesh.h"
+#include "world.h"
 
 #include <cmath>
 #include "nasl/nasl.h"
@@ -117,40 +110,10 @@ struct Shaders {
     }
 };
 
-#define WORLD_SIZE 16
-typedef struct {
-    Chunk chunk;
-    std::unique_ptr<ChunkMesh> mesh;
-} WorldChunk;
-
-WorldChunk world[WORLD_SIZE][WORLD_SIZE];
-
-void load_map(const char* map_dir, Enkl_Allocator* allocator) {
-    McWorld* w = cunk_open_mcworld(map_dir, allocator);
-    assert(w);
-
-    for (int rx = 0; rx < 2; rx++) for (int rz = 0; rz < 2; rz++) {
-            McRegion* r = cunk_open_mcregion(w,  0+ rx, 0 + rz);
-            if (!r)
-                continue;
-            for (int rcx = 0; rcx < 32; rcx++) for (int rcz = 0; rcz < 32; rcz++) {
-                    int dcx = rx * 32 + rcx;
-                    int dcz = rz * 32 + rcz;
-                    if (dcx >= 0 && dcz >= 0 && dcx < WORLD_SIZE && dcz < WORLD_SIZE) {
-                        McChunk* c = cunk_open_mcchunk(r, rcx, rcz);
-                        if (c)
-                            load_from_mcchunk(&world[dcx][dcz].chunk, c);
-                    }
-                }
-        }
-}
-
 int main(int argc, char** argv) {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     auto window = glfwCreateWindow(1024, 1024, "Example", nullptr, nullptr);
-
-    Enkl_Allocator allocator = enkl_get_malloc_free_allocator();
 
     if (argc < 2)
         return 0;
@@ -165,28 +128,7 @@ int main(int argc, char** argv) {
     imr::Swapchain swapchain(device, window);
     imr::FpsCounter fps_counter;
 
-    load_map(argv[1], &allocator);
-
-    for (int x = 0; x < WORLD_SIZE; x++) {
-        for (int z = 0; z < WORLD_SIZE; z++) {
-            WorldChunk* wc = &world[z][x];
-            wc->chunk.x = x;
-            wc->chunk.z = z;
-            wc->mesh = std::make_unique<ChunkMesh>();
-            ChunkNeighbors n {
-
-            };
-            for (int dx = -1; dx < 2; dx++) {
-                for (int dz = -1; dz < 2; dz++) {
-                    int nx = x + dx;
-                    int nz = z + dz;
-                    if (nx >= 0 && nx < WORLD_SIZE && nz >= 0 && nz < WORLD_SIZE)
-                        n.neighbours[dx + 1][dz + 1] = &world[nz][nx].chunk;
-                }
-            }
-            wc->mesh->update(device, n, &wc->chunk);
-        }
-    }
+    auto world = World(argv[1]);
 
     auto prev_frame = imr_get_time_nano();
     float delta = 0;
@@ -288,22 +230,60 @@ int main(int argc, char** argv) {
 
                 push_constants.matrix = m;
 
-                for (int x = 0; x < WORLD_SIZE; x++) {
-                    for (int z = 0; z < WORLD_SIZE; z++) {
-                        WorldChunk& wc = world[z][x];
-                        auto& mesh = wc.mesh;
-                        if (!mesh || mesh->num_verts == 0)
-                            continue;
+                auto load_chunk = [&](int cx, int cz) {
+                    auto loaded = world.get_loaded_chunk(cx, cz);
+                    if (!loaded)
+                        world.load_chunk(cx, cz);
+                    else {
+                        if (loaded->mesh)
+                            return;
 
-                        push_constants.chunk_position = { mesh->x, mesh->y, mesh->z };
-                        vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(push_constants), &push_constants);
+                        bool all_neighbours_loaded = true;
+                        ChunkNeighbors n = {};
+                        for (int dx = -1; dx < 2; dx++) {
+                            for (int dz = -1; dz < 2; dz++) {
+                                int nx = cx + dx;
+                                int nz = cz + dz;
 
-                        vkCmdBindVertexBuffers(cmdbuf, 0, 1, &mesh->buf->handle, tmpPtr((VkDeviceSize) 0));
-                        //vkCmdBindVertexBuffers(cmdbuf, 1, 1, &mesh->buf->handle, tmpPtr((VkDeviceSize) sizeof(float) * 3));
-
-                        assert(mesh->num_verts > 0);
-                        vkCmdDraw(cmdbuf, mesh->num_verts, 1, 0, 0);
+                                auto neighborChunk = world.get_loaded_chunk(nx, nz);
+                                if (neighborChunk)
+                                    n.neighbours[dx + 1][dz + 1] = &neighborChunk->data;
+                                else
+                                    all_neighbours_loaded = false;
+                            }
+                        }
+                        if (all_neighbours_loaded)
+                            loaded->mesh = std::make_unique<ChunkMesh>(device, n);
                     }
+                };
+
+                int player_chunk_x = camera.position.x / 16;
+                int player_chunk_z = camera.position.z / 16;
+
+                int radius = 8;
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        load_chunk(player_chunk_x + dx, player_chunk_z + dz);
+                    }
+                }
+
+                for (auto chunk : world.loaded_chunks()) {
+                    if (abs(chunk->cx - player_chunk_x) > radius && abs(chunk->cz - player_chunk_z) > radius) {
+                        world.unload_chunk(chunk);
+                        continue;
+                    }
+
+                    auto& mesh = chunk->mesh;
+                    if (!mesh || mesh->num_verts == 0)
+                        continue;
+
+                    push_constants.chunk_position = { chunk->cx, 0, chunk->cz };
+                    vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(push_constants), &push_constants);
+
+                    vkCmdBindVertexBuffers(cmdbuf, 0, 1, &mesh->buf->handle, tmpPtr((VkDeviceSize) 0));
+
+                    assert(mesh->num_verts > 0);
+                    vkCmdDraw(cmdbuf, mesh->num_verts, 1, 0, 0);
                 }
             });
 

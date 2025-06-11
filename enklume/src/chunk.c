@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-BlockData chunk_get_block_data(const Chunk* chunk, unsigned x, unsigned y, unsigned z) {
+BlockData chunk_get_block_data(const ChunkData* chunk, unsigned x, unsigned y, unsigned z) {
     assert(x < CUNK_CHUNK_SIZE && z < CUNK_CHUNK_SIZE && y < CUNK_CHUNK_MAX_HEIGHT);
     const ChunkSection* section = chunk->sections[y / CUNK_CHUNK_SIZE];
     y %= CUNK_CHUNK_SIZE;
@@ -12,7 +12,7 @@ BlockData chunk_get_block_data(const Chunk* chunk, unsigned x, unsigned y, unsig
     return air_data;
 }
 
-void chunk_set_block_data(Chunk* chunk, unsigned x, unsigned y, unsigned z, BlockData data) {
+void chunk_set_block_data(ChunkData* chunk, unsigned x, unsigned y, unsigned z, BlockData data) {
     assert(x < CUNK_CHUNK_SIZE && z < CUNK_CHUNK_SIZE && y < CUNK_CHUNK_MAX_HEIGHT);
     unsigned sid = y / CUNK_CHUNK_SIZE;
     ChunkSection* section = chunk->sections[sid];
