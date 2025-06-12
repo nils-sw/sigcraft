@@ -25,6 +25,8 @@ static BlockData decode_pre_flattening_id(uint8_t id) {
         return BlockPlanks;
     if (id == 8 || id == 9)
         return BlockWater;
+    if (id == 10 || id == 11)
+        return BlockLava;
     if (id == 12)
         return BlockSand;
     if (id == 13)
@@ -55,6 +57,8 @@ static BlockData decode_flattened_id(const char* id) {
         return BlockPlanks;
     if ((strcmp("minecraft:water", id) == 0) || (strcmp("minecraft:flowing_water", id) == 0))
         return BlockWater;
+    if ((strcmp("minecraft:lava", id) == 0) || (strcmp("minecraft:flowing_lava", id) == 0))
+        return BlockLava;
     if (strcmp("minecraft:sand", id) == 0)
         return BlockSand;
     if (strcmp("minecraft:gravel", id) == 0)

@@ -67,7 +67,7 @@ struct Shaders {
             {
                 .location = 1,
                 .binding = 0,
-                .format = VK_FORMAT_R8G8B8_UNORM,
+                .format = VK_FORMAT_R8G8B8_SNORM,
                 .offset = offsetof(ChunkMesh::Vertex, nnx),
             },
             {
