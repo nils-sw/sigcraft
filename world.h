@@ -46,6 +46,8 @@ struct Region {
     World& world;
     int rx, rz;
     McRegion* enkl_region = nullptr;
+    bool loaded = false;
+    bool unloaded = false;
     std::unordered_map<Int2, std::unique_ptr<Chunk>> chunks;
 
     Region(World&, int rx, int rz);

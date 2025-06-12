@@ -32,6 +32,9 @@ Region* World::load_region(int rx, int rz) {
     assert(!get_loaded_region(rx, rz));
     Int2 pos = {rx, rz};
     auto& r = regions[pos] = std::make_unique<Region>(*this, rx, rz);
+    assert(!r->loaded);
+    assert(!r->unloaded);
+    r->loaded = true;
     return &*r;
 }
 
@@ -71,6 +74,9 @@ void World::unload_chunk(Chunk* chunk) {
 }
 
 void World::unload_region(Region* region) {
+    assert(region->loaded);
+    assert(!region->unloaded);
+    region->unloaded = true;
     int rx = region->rx;
     int rz = region->rz;
     Int2 pos = {rx, rz};
@@ -118,7 +124,7 @@ void Region::unload_chunk(Chunk* chunk) {
 Chunk::Chunk(Region& r, int cx, int cz) : region(r), cx(cx), cz(cz) {
     unsigned rcx = cx & 0x1f;
     unsigned rcz = cz & 0x1f;
-    //printf("%d %d\n", cx, cz);
+    //printf("! %d %d\n", cx, cz);
     if (r.enkl_region) {
         enkl_chunk = cunk_open_mcchunk(r.enkl_region, rcx, rcz);
         if (enkl_chunk) {
