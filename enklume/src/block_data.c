@@ -10,6 +10,66 @@
 
 #define MC_1_18_DATA_VERSION 2825
 
+static BlockData decode_pre_flattening_id(uint8_t id) {
+    if (id == 0)
+        return BlockAir;
+    if (id == 1)
+        return BlockStone;
+    if (id == 2)
+        return BlockGrass;
+    if (id == 3)
+        return BlockDirt;
+    if (id == 4)
+        return BlockStone;
+    if (id == 5)
+        return BlockPlanks;
+    if (id == 8 || id == 9)
+        return BlockWater;
+    if (id == 12)
+        return BlockSand;
+    if (id == 13)
+        return BlockGravel;
+    if (id == 17)
+        return BlockWood;
+    if (id == 18 || id == 161)
+        return BlockLeaves;
+    if (id == 31)
+        return BlockTallGrass;
+    if (id == 78 || id == 80)
+        return BlockSnow;
+    return BlockUnknown;
+}
+
+static BlockData decode_flattened_id(const char* id) {
+    if (strcmp("minecraft:air", id) == 0)
+        return BlockAir;
+    if (strcmp("minecraft:stone", id) == 0)
+        return BlockStone;
+    if (strcmp("minecraft:grass", id) == 0)
+        return BlockGrass;
+    if (strcmp("minecraft:dirt", id) == 0)
+        return BlockDirt;
+    if (strcmp("minecraft:cobblestone", id) == 0)
+        return BlockStone;
+    if (strcmp("minecraft:planks", id) == 0)
+        return BlockPlanks;
+    if ((strcmp("minecraft:water", id) == 0) || (strcmp("minecraft:flowing_water", id) == 0))
+        return BlockWater;
+    if (strcmp("minecraft:sand", id) == 0)
+        return BlockSand;
+    if (strcmp("minecraft:gravel", id) == 0)
+        return BlockGravel;
+    if (strcmp("minecraft:log", id) == 0)
+        return BlockWood;
+    if ((strcmp("minecraft:leaves", id) == 0) || strcmp("minecraft:leaves2", id) == 0)
+        return BlockLeaves;
+    if (strcmp("minecraft:tallgrass", id) == 0)
+        return BlockTallGrass;
+    if ((strcmp("minecraft:snow_layer", id) == 0) || strcmp("minecraft:snow", id) == 0)
+        return BlockSnow;
+    return BlockUnknown;
+}
+
 static void decode_pre_flattening(ChunkData* dst_chunk, int section_y, const NBT_Object* blocks_data) {
     if (!blocks_data)
         return;
@@ -22,7 +82,7 @@ static void decode_pre_flattening(ChunkData* dst_chunk, int section_y, const NBT
         int8_t block_state = arr->arr[pos];
         assert(pos < arr->count);
 
-        chunk_set_block_data(dst_chunk, z, y + section_y * 16, x, (block_state == 0) ? 0 : 1);
+        chunk_set_block_data(dst_chunk, z, y + section_y * 16, x, decode_pre_flattening_id(block_state));
     }
 }
 
@@ -34,13 +94,12 @@ static void decode_post_flattening(ChunkData* dst_chunk, int section_y, const NB
     const NBT_LongArray* block_state_arr = cunk_nbt_extract_long_array(block_states);
     int palette_size = palette->body.p_list.count;
 
-    bool is_air[palette_size];
+    BlockData decoded[palette_size];
     for (size_t j = 0; j < palette_size; j++) {
         const NBT_Compound* color = &palette->body.p_list.bodies[j].p_compound;
         const char* name = *cunk_nbt_extract_string(cunk_nbt_compound_direct_access(color, "Name"));
         assert(name);
-        if (strcmp(name, "minecraft:air") == 0)
-            is_air[j] = true;
+        decoded[j] = decode_flattened_id(name);
     }
 
     int bits = enkl_needed_bits(palette_size);
@@ -66,7 +125,7 @@ static void decode_post_flattening(ChunkData* dst_chunk, int section_y, const NB
 
         assert(block_state < palette_size);
         block_state %= palette_size;
-        chunk_set_block_data(dst_chunk, z, y + section_y * 16, x, is_air[block_state] ? 0 : 1);
+        chunk_set_block_data(dst_chunk, z, y + section_y * 16, x, decoded[block_state]);
     }
 }
 
@@ -109,6 +168,13 @@ void load_from_mcchunk(ChunkData* dst_chunk, McChunk* chunk) {
             const NBT_Object* palette = cunk_nbt_compound_direct_access(container, post_1_18 ? "palette" : "Palette");
             decode_post_flattening(dst_chunk, section_y, block_states, palette, ver < 2504);
         }
+    }
+}
+
+void enkl_destroy_chunk_data(ChunkData* chunk) {
+    for (int section = 0; section < (CUNK_CHUNK_MAX_HEIGHT / CUNK_CHUNK_SIZE); section++) {
+        if (chunk->sections[section])
+            free(chunk->sections[section]);
     }
 }
 

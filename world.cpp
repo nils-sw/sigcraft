@@ -6,6 +6,7 @@ World::World(const char* filename) {
 }
 
 World::~World() {
+    regions.clear();
     cunk_close_mcworld(enkl_world);
 }
 
@@ -77,10 +78,13 @@ void World::unload_region(Region* region) {
 }
 
 Region::Region(World& w, int rx, int rz) : world(w), rx(rx), rz(rz) {
-    enkl_region = cunk_open_mcregion(w.enkl_world, 0+ rx, 0 + rz);
+    //printf("! %d %d\n", rx, rz);
+    enkl_region = cunk_open_mcregion(w.enkl_world, rx, rz);
 }
 
 Region::~Region() {
+    //printf("~ %d %d %zu\n", rx, rz, (size_t) enkl_region);
+    chunks.clear();
     if (enkl_region)
         enkl_close_region(enkl_region);
 }
@@ -124,5 +128,8 @@ Chunk::Chunk(Region& r, int cx, int cz) : region(r), cx(cx), cz(cz) {
 }
 
 Chunk::~Chunk() {
-
+    //printf("~ %d %d\n", cx, cz);
+    enkl_destroy_chunk_data(&data);
+    if (enkl_chunk)
+        enkl_close_chunk(enkl_chunk);
 }

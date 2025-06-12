@@ -15,6 +15,9 @@ in ivec3 vertexIn;
 layout(location = 1)
 in vec3 normalIn;
 
+layout(location = 2)
+in vec3 colorIn;
+
 layout(scalar, push_constant) uniform T {
     mat4 matrix;
     ivec3 chunk_position;
@@ -25,6 +28,6 @@ void main() {
     mat4 matrix = push_constants.matrix;
     gl_Position = matrix * vec4(vec3(vertexIn + push_constants.chunk_position * 16), 1.0);
     int primid = gl_VertexIndex / 6;
-    color = vec3(primid % 2, (primid % 4) / 4.0, (primid % 3) / 3.0);
+    color = colorIn;
     normal = normalIn;
 }

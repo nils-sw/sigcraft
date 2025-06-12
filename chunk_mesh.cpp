@@ -5,6 +5,7 @@ extern "C" {
 }
 
 #include "chunk_mesh.h"
+#include "nasl/nasl.h"
 
 #include <assert.h>
 #include <vector>
@@ -75,9 +76,12 @@ v.ss = t * 255;             \
 v.nnx = nx * 127 + 128;            \
 v.nny = ny * 127 + 128;            \
 v.nnz = nz * 127 + 128;            \
+v.br = color.x * 255;            \
+v.bg = color.y * 255;            \
+v.bb = color.z * 255;            \
 add_vertex();
 
-static void paste_minus_x_face(std::vector<uint8_t>& g, unsigned x, unsigned y, unsigned z) {
+static void paste_minus_x_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -88,7 +92,7 @@ static void paste_minus_x_face(std::vector<uint8_t>& g, unsigned x, unsigned y, 
     MINUS_X_FACE(V)
 }
 
-static void paste_plus_x_face(std::vector<uint8_t>& g, unsigned x, unsigned y, unsigned z) {
+static void paste_plus_x_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -99,7 +103,7 @@ static void paste_plus_x_face(std::vector<uint8_t>& g, unsigned x, unsigned y, u
     PLUS_X_FACE(V)
 }
 
-static void paste_minus_y_face(std::vector<uint8_t>& g, unsigned x, unsigned y, unsigned z) {
+static void paste_minus_y_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -110,7 +114,7 @@ static void paste_minus_y_face(std::vector<uint8_t>& g, unsigned x, unsigned y, 
     MINUS_Y_FACE(V)
 }
 
-static void paste_plus_y_face(std::vector<uint8_t>& g, unsigned x, unsigned y, unsigned z) {
+static void paste_plus_y_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -121,7 +125,7 @@ static void paste_plus_y_face(std::vector<uint8_t>& g, unsigned x, unsigned y, u
     PLUS_Y_FACE(V)
 }
 
-static void paste_minus_z_face(std::vector<uint8_t>& g, unsigned x, unsigned y, unsigned z) {
+static void paste_minus_z_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -132,7 +136,7 @@ static void paste_minus_z_face(std::vector<uint8_t>& g, unsigned x, unsigned y, 
     MINUS_Z_FACE(V)
 }
 
-static void paste_plus_z_face(std::vector<uint8_t>& g, unsigned x, unsigned y, unsigned z) {
+static void paste_plus_z_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
     float tmp[5];
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
@@ -157,7 +161,7 @@ static BlockData access_safe(const ChunkData* chunk, ChunkNeighbors& neighbours,
     }
 
     if (y < 0 || y > CUNK_CHUNK_MAX_HEIGHT)
-        return air_data;
+        return BlockAir;
 
     if (z < 0) {
         k = 0;
@@ -174,7 +178,7 @@ static BlockData access_safe(const ChunkData* chunk, ChunkNeighbors& neighbours,
             return chunk_get_block_data(neighbours.neighbours[i][k], x & 15, y, z & 15);
     }
 
-    return air_data;
+    return BlockAir;
 }
 
 void chunk_mesh(const ChunkData* chunk, ChunkNeighbors& neighbours, std::vector<uint8_t>& g, size_t* num_verts) {
@@ -184,31 +188,36 @@ void chunk_mesh(const ChunkData* chunk, ChunkNeighbors& neighbours, std::vector<
             for (int y = 0; y < CUNK_CHUNK_SIZE; y++)
                 for (int z = 0; z < CUNK_CHUNK_SIZE; z++) {
                     int world_y = y + section * CUNK_CHUNK_SIZE;
-                    if (access_safe(chunk, neighbours, x, world_y, z) != air_data) {
-                        if (access_safe(chunk, neighbours, x, world_y + 1, z) == air_data) {
-                            paste_plus_y_face(g, x, world_y, z);
+                    BlockData block_data = access_safe(chunk, neighbours, x, world_y, z);
+                    if (block_data != BlockAir) {
+                        nasl::vec3 color;
+                        color.x = block_colors[block_data].r;
+                        color.y = block_colors[block_data].g;
+                        color.z = block_colors[block_data].b;
+                        if (access_safe(chunk, neighbours, x, world_y + 1, z) == BlockAir) {
+                            paste_plus_y_face(g, color, x, world_y, z);
                             *num_verts += 6;
                         }
-                        if (access_safe(chunk, neighbours, x, world_y - 1, z) == air_data) {
-                            paste_minus_y_face(g, x, world_y, z);
-                            *num_verts += 6;
-                        }
-
-                        if (access_safe(chunk, neighbours, x + 1, world_y, z) == air_data) {
-                            paste_plus_x_face(g, x, world_y, z);
-                            *num_verts += 6;
-                        }
-                        if (access_safe(chunk, neighbours, x - 1, world_y, z) == air_data) {
-                            paste_minus_x_face(g, x, world_y, z);
+                        if (access_safe(chunk, neighbours, x, world_y - 1, z) == BlockAir) {
+                            paste_minus_y_face(g, color, x, world_y, z);
                             *num_verts += 6;
                         }
 
-                        if (access_safe(chunk, neighbours, x, world_y, z + 1) == air_data) {
-                            paste_plus_z_face(g, x, world_y, z);
+                        if (access_safe(chunk, neighbours, x + 1, world_y, z) == BlockAir) {
+                            paste_plus_x_face(g, color, x, world_y, z);
                             *num_verts += 6;
                         }
-                        if (access_safe(chunk, neighbours, x, world_y, z - 1) == air_data) {
-                            paste_minus_z_face(g, x, world_y, z);
+                        if (access_safe(chunk, neighbours, x - 1, world_y, z) == BlockAir) {
+                            paste_minus_x_face(g, color, x, world_y, z);
+                            *num_verts += 6;
+                        }
+
+                        if (access_safe(chunk, neighbours, x, world_y, z + 1) == BlockAir) {
+                            paste_plus_z_face(g, color, x, world_y, z);
+                            *num_verts += 6;
+                        }
+                        if (access_safe(chunk, neighbours, x, world_y, z - 1) == BlockAir) {
+                            paste_minus_z_face(g, color, x, world_y, z);
                             *num_verts += 6;
                         }
                     }

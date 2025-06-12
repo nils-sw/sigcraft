@@ -30,6 +30,7 @@ McRegion* cunk_open_mcregion(McWorld* world, int x, int z);
 void enkl_close_region(McRegion*);
 
 McChunk* cunk_open_mcchunk(McRegion* world, unsigned int x, unsigned int z);
+void enkl_close_chunk(McChunk* chunk);
 
 typedef struct NBT_Object_ NBT_Object;
 const NBT_Object* cunk_mcchunk_get_root(const McChunk*);

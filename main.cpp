@@ -70,6 +70,12 @@ struct Shaders {
                 .format = VK_FORMAT_R8G8B8_UNORM,
                 .offset = offsetof(ChunkMesh::Vertex, nnx),
             },
+            {
+                .location = 2,
+                .binding = 0,
+                .format = VK_FORMAT_R8G8B8_UNORM,
+                .offset = offsetof(ChunkMesh::Vertex, br),
+            },
         };
 
         VkPipelineVertexInputStateCreateInfo vertex_input {

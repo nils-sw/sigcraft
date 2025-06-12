@@ -111,6 +111,7 @@ McRegion* cunk_open_mcregion(McWorld* world, int x, int z) {
         }
     }
 
+    free((char*) path);
     region->bytes = contents;
     return region;
 
@@ -121,7 +122,7 @@ McRegion* cunk_open_mcregion(McWorld* world, int x, int z) {
 
 void enkl_close_region(McRegion* r) {
     Enkl_Allocator* allocator = r->world->allocator;
-
+    allocator->free_bytes(allocator, r->bytes);
     allocator->free_bytes(allocator, r);
 }
 
@@ -167,6 +168,12 @@ McChunk* cunk_open_mcchunk(McRegion* region, unsigned int x, unsigned int z) {
         .root = root,
     };
     return chunk;
+}
+
+void enkl_close_chunk(McChunk* chunk) {
+    Enkl_Allocator* allocator = chunk->region->world->allocator;
+    enkl_free_nbt(chunk->root, allocator);
+    free(chunk);
 }
 
 const NBT_Object* cunk_mcchunk_get_root(const McChunk* c) { return c->root; }
