@@ -1,4 +1,4 @@
-add_library(enklume src/nbt.c src/nbt_print.c src/enklume.c src/chunk.c src/enklume_adapter.c src/support.c src/zlib_wrap.c)
+add_library(enklume src/nbt.c src/nbt_print.c src/enklume.c src/chunk.c src/block_data.c src/support.c src/zlib_wrap.c)
 target_include_directories(enklume PUBLIC include)
 
 find_package(ZLIB REQUIRED)

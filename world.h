@@ -3,7 +3,7 @@
 
 extern "C" {
 
-#include "enklume/chunk.h"
+#include "enklume/block_data.h"
 #include "enklume/enklume.h"
 
 }

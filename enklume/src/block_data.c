@@ -2,10 +2,11 @@
 #include "enklume/nbt.h"
 #include "support_private.h"
 
-#include "enklume/chunk.h"
+#include "enklume/block_data.h"
 
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #define MC_1_18_DATA_VERSION 2825
 
@@ -109,4 +110,23 @@ void load_from_mcchunk(ChunkData* dst_chunk, McChunk* chunk) {
             decode_post_flattening(dst_chunk, section_y, block_states, palette, ver < 2504);
         }
     }
+}
+
+BlockData chunk_get_block_data(const ChunkData* chunk, unsigned x, unsigned y, unsigned z) {
+    assert(x < CUNK_CHUNK_SIZE && z < CUNK_CHUNK_SIZE && y < CUNK_CHUNK_MAX_HEIGHT);
+    const ChunkSection* section = chunk->sections[y / CUNK_CHUNK_SIZE];
+    y %= CUNK_CHUNK_SIZE;
+    if (section)
+        return section->block_data[y][z][x];
+    return air_data;
+}
+
+void chunk_set_block_data(ChunkData* chunk, unsigned x, unsigned y, unsigned z, BlockData data) {
+    assert(x < CUNK_CHUNK_SIZE && z < CUNK_CHUNK_SIZE && y < CUNK_CHUNK_MAX_HEIGHT);
+    unsigned sid = y / CUNK_CHUNK_SIZE;
+    ChunkSection* section = chunk->sections[sid];
+    y %= CUNK_CHUNK_SIZE;
+    if (!section)
+        section = chunk->sections[sid] = calloc(CUNK_CHUNK_SIZE * CUNK_CHUNK_SIZE * CUNK_CHUNK_SIZE, sizeof(BlockData));
+    section->block_data[y][z][x] = data;
 }
