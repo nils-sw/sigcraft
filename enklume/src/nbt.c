@@ -119,7 +119,7 @@ static void free_nbt_body(NBT_Tag tag, NBT_Body* body, Enkl_Allocator* allocator
             break;
         case NBT_Tag_List: {
             for (size_t i = 0; i < body->p_list.count; i++) {
-                free_nbt_body(tag, &body->p_list.bodies[i], allocator);
+                free_nbt_body(body->p_list.tag, &body->p_list.bodies[i], allocator);
             }
             allocator->free_bytes(allocator, body->p_list.bodies);
             break;
