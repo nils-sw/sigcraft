@@ -10,52 +10,52 @@ extern "C" {
 #include <assert.h>
 #include <vector>
 
-#define MINUS_X_FACE(V) \
-V(-1, -1, -1,   0, 0, -1, 0, 0) \
-V(-1,  1, -1,   0, 1, -1, 0, 0) \
-V(-1,  1,  1,   1, 1, -1, 0, 0) \
-V(-1, -1, -1,   0, 0, -1, 0, 0) \
-V(-1,  1,  1,   1, 1, -1, 0, 0) \
-V(-1, -1,  1,   1, 0, -1, 0, 0)
+#define MINUS_X_FACE(V)           \
+    V(-1, -1, -1, 0, 0, -1, 0, 0) \
+    V(-1, 1, -1, 0, 1, -1, 0, 0)  \
+    V(-1, 1, 1, 1, 1, -1, 0, 0)   \
+    V(-1, -1, 1, 1, 0, -1, 0, 0)
+// V(-1,  1,  1,   1, 1, -1, 0, 0)
+// V(-1, -1, -1,   0, 0, -1, 0, 0)
 
-#define PLUS_X_FACE(V) \
-V(1,   1, -1,   1, 1, 1, 0, 0) \
-V(1,  -1, -1,   1, 0, 1, 0, 0) \
+#define PLUS_X_FACE(V)          \
+    V(1, 1, -1, 1, 1, 1, 0, 0)  \
+    V(1, 1, 1, 0, 1, 1, 0, 0)   \
+    V(1, -1, -1, 1, 0, 1, 0, 0) \
+    V(1, -1, 1, 0, 0, 1, 0, 0)
+// V(1,  -1, -1,   1, 0, 1, 0, 0) \
 V(1,   1,  1,   0, 1, 1, 0, 0) \
-V(1,   1,  1,   0, 1, 1, 0, 0) \
-V(1,  -1, -1,   1, 0, 1, 0, 0) \
-V(1,  -1,  1,   0, 0, 1, 0, 0)
 
-#define MINUS_Z_FACE(V) \
-V(1,   1, -1,   0, 1, 0, 0, -1) \
-V(-1, -1, -1,   1, 0, 0, 0, -1) \
-V(1,  -1, -1,   0, 0, 0, 0, -1) \
-V(-1,  1, -1,   1, 1, 0, 0, -1) \
-V(-1, -1, -1,   1, 0, 0, 0, -1) \
-V(1,   1, -1,   0, 1, 0, 0, -1)
+#define MINUS_Z_FACE(V)           \
+    V(1, 1, -1, 0, 1, 0, 0, -1)   \
+    V(-1, -1, -1, 1, 0, 0, 0, -1) \
+    V(1, -1, -1, 0, 0, 0, 0, -1)  \
+    V(-1, 1, -1, 1, 1, 0, 0, -1)
+// V(1,   1, -1,   0, 1, 0, 0, -1)
+// V(-1, -1, -1,   1, 0, 0, 0, -1) \
 
-#define PLUS_Z_FACE(V) \
-V(1,  -1,  1,   1, 0, 0, 0, 1) \
-V(-1, -1,  1,   0, 0, 0, 0, 1) \
+#define PLUS_Z_FACE(V)          \
+    V(1, -1, 1, 1, 0, 0, 0, 1)  \
+    V(-1, -1, 1, 0, 0, 0, 0, 1) \
+    V(1, 1, 1, 1, 1, 0, 0, 1)   \
+    V(-1, 1, 1, 0, 1, 0, 0, 1)
+// V(-1, -1,  1,   0, 0, 0, 0, 1) \
 V(1,   1,  1,   1, 1, 0, 0, 1) \
-V(1,   1,  1,   1, 1, 0, 0, 1) \
-V(-1, -1,  1,   0, 0, 0, 0, 1) \
-V(-1,  1,  1,   0, 1, 0, 0, 1)
 
-#define MINUS_Y_FACE(V) \
-V(-1, -1, -1,   0, 0, 0, -1, 0) \
+#define MINUS_Y_FACE(V)           \
+    V(-1, -1, -1, 0, 0, 0, -1, 0) \
+    V(1, -1, 1, 1, 1, 0, -1, 0)   \
+    V(1, -1, -1, 1, 0, 0, -1, 0)  \
+    V(-1, -1, 1, 0, 1, 0, -1, 0)
+// V(-1, -1, -1,   0, 0, 0, -1, 0) \
 V(1,  -1,  1,   1, 1, 0, -1, 0) \
-V(1,  -1, -1,   1, 0, 0, -1, 0) \
-V(1,  -1,  1,   1, 1, 0, -1, 0) \
-V(-1, -1, -1,   0, 0, 0, -1, 0) \
-V(-1, -1,  1,   0, 1, 0, -1, 0)
 
-#define PLUS_Y_FACE(V) \
-V(1,   1,  1,   1, 0, 0, 1, 0) \
-V(-1,  1, -1,   0, 1, 0, 1, 0) \
-V(1,   1, -1,   1, 1, 0, 1, 0) \
-V(-1,  1,  1,   0, 0, 0, 1, 0) \
-V(-1,  1, -1,   0, 1, 0, 1, 0) \
+#define PLUS_Y_FACE(V)          \
+    V(1, 1, 1, 1, 0, 0, 1, 0)   \
+    V(-1, 1, -1, 0, 1, 0, 1, 0) \
+    V(1, 1, -1, 1, 1, 0, 1, 0)  \
+    V(-1, 1, 1, 0, 0, 0, 1, 0)
+// V(-1,  1, -1,   0, 1, 0, 1, 0) \
 V(1,   1,  1,   1, 0, 0, 1, 0)
 
 #define CUBE(V) \
@@ -81,7 +81,8 @@ v.bg = color.y * 255;            \
 v.bb = color.z * 255;            \
 add_vertex();
 
-static void paste_minus_x_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
+static void paste_minus_x_face(std::vector<uint32_t> &g, nasl::vec3 color, unsigned x, unsigned y, unsigned z)
+{
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -92,7 +93,8 @@ static void paste_minus_x_face(std::vector<uint8_t>& g, nasl::vec3 color, unsign
     MINUS_X_FACE(V)
 }
 
-static void paste_plus_x_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
+static void paste_plus_x_face(std::vector<uint32_t> &g, nasl::vec3 color, unsigned x, unsigned y, unsigned z)
+{
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -103,7 +105,8 @@ static void paste_plus_x_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigne
     PLUS_X_FACE(V)
 }
 
-static void paste_minus_y_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
+static void paste_minus_y_face(std::vector<uint32_t> &g, nasl::vec3 color, unsigned x, unsigned y, unsigned z)
+{
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -114,7 +117,8 @@ static void paste_minus_y_face(std::vector<uint8_t>& g, nasl::vec3 color, unsign
     MINUS_Y_FACE(V)
 }
 
-static void paste_plus_y_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
+static void paste_plus_y_face(std::vector<uint32_t> &g, nasl::vec3 color, unsigned x, unsigned y, unsigned z)
+{
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -125,7 +129,8 @@ static void paste_plus_y_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigne
     PLUS_Y_FACE(V)
 }
 
-static void paste_minus_z_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
+static void paste_minus_z_face(std::vector<uint32_t> &g, nasl::vec3 color, unsigned x, unsigned y, unsigned z)
+{
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
         uint8_t tmp[sizeof(v)];
@@ -136,7 +141,8 @@ static void paste_minus_z_face(std::vector<uint8_t>& g, nasl::vec3 color, unsign
     MINUS_Z_FACE(V)
 }
 
-static void paste_plus_z_face(std::vector<uint8_t>& g, nasl::vec3 color, unsigned x, unsigned y, unsigned z) {
+static void paste_plus_z_face(std::vector<uint32_t> &g, nasl::vec3 color, unsigned x, unsigned y, unsigned z)
+{
     float tmp[5];
     ChunkMesh::Vertex v;
     auto add_vertex = [&](){
@@ -181,7 +187,8 @@ static BlockData access_safe(const ChunkData* chunk, ChunkNeighbors& neighbours,
     return BlockAir;
 }
 
-void chunk_mesh(const ChunkData* chunk, ChunkNeighbors& neighbours, std::vector<uint8_t>& g, size_t* num_verts) {
+void chunk_mesh(const ChunkData *chunk, ChunkNeighbors &neighbours, std::vector<uint32_t> &g, size_t *num_verts)
+{
     *num_verts = 0;
     for (int section = 0; section < CUNK_CHUNK_SECTIONS_COUNT; section++) {
         for (int x = 0; x < CUNK_CHUNK_SIZE; x++)
@@ -196,29 +203,29 @@ void chunk_mesh(const ChunkData* chunk, ChunkNeighbors& neighbours, std::vector<
                         color.z = block_colors[block_data].b;
                         if (access_safe(chunk, neighbours, x, world_y + 1, z) == BlockAir) {
                             paste_plus_y_face(g, color, x, world_y, z);
-                            *num_verts += 6;
+                            *num_verts += 4;
                         }
                         if (access_safe(chunk, neighbours, x, world_y - 1, z) == BlockAir) {
                             paste_minus_y_face(g, color, x, world_y, z);
-                            *num_verts += 6;
+                            *num_verts += 4;
                         }
 
                         if (access_safe(chunk, neighbours, x + 1, world_y, z) == BlockAir) {
                             paste_plus_x_face(g, color, x, world_y, z);
-                            *num_verts += 6;
+                            *num_verts += 4;
                         }
                         if (access_safe(chunk, neighbours, x - 1, world_y, z) == BlockAir) {
                             paste_minus_x_face(g, color, x, world_y, z);
-                            *num_verts += 6;
+                            *num_verts += 4;
                         }
 
                         if (access_safe(chunk, neighbours, x, world_y, z + 1) == BlockAir) {
                             paste_plus_z_face(g, color, x, world_y, z);
-                            *num_verts += 6;
+                            *num_verts += 4;
                         }
                         if (access_safe(chunk, neighbours, x, world_y, z - 1) == BlockAir) {
                             paste_minus_z_face(g, color, x, world_y, z);
-                            *num_verts += 6;
+                            *num_verts += 4;
                         }
                     }
                 }
@@ -226,17 +233,17 @@ void chunk_mesh(const ChunkData* chunk, ChunkNeighbors& neighbours, std::vector<
 }
 
 ChunkMesh::ChunkMesh(imr::Device& d, ChunkNeighbors& n) {
-    std::vector<uint8_t> g;
+    std::vector<uint32_t> g;
     chunk_mesh(n.neighbours[1][1], n, g, &num_verts);
 
-    //fprintf(stderr, "%zu vertices, totalling %zu KiB of data\n", num_verts, num_verts * sizeof(float) * 5 / 1024);
+    // fprintf(stderr, "%zu vertices, totalling %zu KiB of data\n", num_verts, num_verts * sizeof(float) * 5 / 1024);
     //fflush(stderr);
 
-    size_t buffer_size = g.size() * sizeof(uint8_t);
+    size_t buffer_size = g.size() * sizeof(uint32_t);
     void* buffer = g.data();
 
     if (buffer_size > 0) {
-        buf = std::make_unique<imr::Buffer>(d, buffer_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+        buf = std::make_unique<imr::Buffer>(d, buffer_size, VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
         buf->uploadDataSync(0, buffer_size, buffer);
     }
 }

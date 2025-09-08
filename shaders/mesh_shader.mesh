@@ -1,0 +1,98 @@
+#version 450
+#extension GL_EXT_mesh_shader : require
+#extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_buffer_reference : require
+
+layout(scalar, buffer_reference) buffer VertexBuffer {
+	vec4 vertices[];
+};
+
+layout(scalar, buffer_reference) buffer FaceBuffer {
+	uvec4 faces[];
+};
+
+layout(scalar, buffer_reference) buffer PositionBuffer {
+	vec3 positions[];
+};
+
+struct Vertex {
+	ivec3 pos;
+	uint tt;
+	uint ss;
+	uvec3 normal;
+	uvec3 color; // rgb
+};
+
+layout(scalar, buffer_reference) buffer MeshBuffer {
+	Vertex vertices[];
+};
+
+layout(scalar, push_constant) uniform T {
+	mat4 matrix;
+    ivec3 chunk_position;
+    float time;
+    MeshBuffer mesh_buffer;
+	uint num_verts;
+} push_constants;
+
+layout(local_size_x = 2, local_size_y = 1, local_size_z = 1) in;
+layout(triangles, max_vertices = 24, max_primitives = 12) out;
+
+// layout(location = 0) out VertexOutput
+// {
+// 	vec4 color;
+// } vertexOutput[];
+
+const vec4[6] colors = {
+	vec4(0.0, 1.0, 0.0, 1.0),	// top
+	vec4(1.0, 0.0, 0.0, 1.0),	// north
+	vec4(0.0, 0.0, 1.0, 1.0),	// west
+	vec4(1.0, 0.0, 1.0, 1.0), 	// east
+	vec4(0.0, 1.0, 1.0, 1.0), 	// south
+	vec4(1.0, 1.0, 0.0, 1.0) 	// bottom
+	};
+
+layout(location = 1) perprimitiveEXT out PrimitiveOutput {
+	vec4 color;
+} primitiveOutput[];
+
+struct Task {
+	uint offset;
+	uint numWorkgroups;
+};
+
+taskPayloadSharedEXT Task payload;
+
+void main() {
+	SetMeshOutputsEXT(4 , 2);
+
+	uint sharedData = payload.offset * gl_NumWorkGroups.x;
+
+    bool is_even = gl_LocalInvocationID.x % 2 == 0;
+	uint triId = gl_LocalInvocationID.x;
+	uint vtx_offset = gl_WorkGroupID.x * 4;
+
+	vec3 vertex0 = push_constants.mesh_buffer.vertices[vtx_offset].pos;
+	vec3 vertex1 = push_constants.mesh_buffer.vertices[vtx_offset + 1].pos;
+	vec3 vertex2 = push_constants.mesh_buffer.vertices[vtx_offset + 2].pos;
+	vec3 vertex3 = push_constants.mesh_buffer.vertices[vtx_offset + 3].pos;
+
+	vec3 color = push_constants.mesh_buffer.vertices[vtx_offset].color;
+
+	mat4 mvp = push_constants.matrix;
+
+	if (is_even) {
+        gl_MeshVerticesEXT[0].gl_Position = mvp * vec4(vertex0, 1);
+        gl_MeshVerticesEXT[1].gl_Position = mvp * vec4(vertex1, 1);
+	} else {
+        gl_MeshVerticesEXT[2].gl_Position = mvp * vec4(vertex2, 1);
+        gl_MeshVerticesEXT[3].gl_Position = mvp * vec4(vertex3, 1);
+	}
+	if (is_even) {
+    	gl_PrimitiveTriangleIndicesEXT[triId] = uvec3(0, 1, 3);
+	    primitiveOutput[triId].color = vec4(color, 1.0);
+    } else {
+    	gl_PrimitiveTriangleIndicesEXT[triId] = uvec3(1, 2, 3);
+	    primitiveOutput[triId].color = vec4(color, 1.0);
+    }
+}

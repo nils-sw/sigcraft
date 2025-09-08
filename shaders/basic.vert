@@ -22,12 +22,14 @@ layout(scalar, push_constant) uniform T {
     mat4 matrix;
     ivec3 chunk_position;
     float time;
+    // vec3 vertex_buffer;
+    //VkDeviceAddress mesh_buffer;
 } push_constants;
 
 void main() {
-    mat4 matrix = push_constants.matrix;
-    gl_Position = matrix * vec4(vec3(vertexIn + push_constants.chunk_position * 16), 1.0);
-    int primid = gl_VertexIndex / 6;
-    color = colorIn;
+    // mat4 matrix = push_constants.matrix;
+    // gl_Position = matrix * vec4(vec3(vertexIn + push_constants.chunk_position * 16), 1.0);
+    // int primid = gl_VertexIndex / 6;
+    // color = colorIn;
     normal = normalIn;
 }

@@ -15,6 +15,9 @@ struct {
     mat4 matrix;
     ivec3 chunk_position;
     float time;
+    VkDeviceAddress mesh_buffer;
+    uint32_t num_verts;
+    // VkDeviceAddress vertex_buffer;
 } push_constants;
 
 Camera camera;
@@ -29,7 +32,7 @@ void camera_update(GLFWwindow*, CameraInput* input);
 bool reload_shaders = false;
 
 struct Shaders {
-    std::vector<std::string> files = { "basic.vert.spv", "basic.frag.spv" };
+    std::vector<std::string> files = {"mesh_shader.mesh.spv", "mesh_shader.task.spv", "basic.frag.spv"};
 
     std::vector<std::unique_ptr<imr::ShaderModule>> modules;
     std::vector<std::unique_ptr<imr::ShaderEntryPoint>> entry_points;
@@ -49,42 +52,42 @@ struct Shaders {
         };
         rts.depth = depth;
 
-        VkVertexInputBindingDescription bindings[] = {
-            {
-                .binding = 0,
-                .stride = sizeof(ChunkMesh::Vertex),
-                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-            },
-        };
+        // VkVertexInputBindingDescription bindings[] = {
+        //     {
+        //         .binding = 0,
+        //         .stride = sizeof(ChunkMesh::Vertex),
+        //         .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+        //     },
+        // };
 
-        VkVertexInputAttributeDescription attributes[] = {
-            {
-                .location = 0,
-                .binding = 0,
-                .format = VK_FORMAT_R16G16B16_SINT,
-                .offset = 0,
-            },
-            {
-                .location = 1,
-                .binding = 0,
-                .format = VK_FORMAT_R8G8B8_SNORM,
-                .offset = offsetof(ChunkMesh::Vertex, nnx),
-            },
-            {
-                .location = 2,
-                .binding = 0,
-                .format = VK_FORMAT_R8G8B8_UNORM,
-                .offset = offsetof(ChunkMesh::Vertex, br),
-            },
-        };
+        // VkVertexInputAttributeDescription attributes[] = {
+        //     {
+        //         .location = 0,
+        //         .binding = 0,
+        //         .format = VK_FORMAT_R16G16B16_SINT,
+        //         .offset = 0,
+        //     },
+        //     {
+        //         .location = 1,
+        //         .binding = 0,
+        //         .format = VK_FORMAT_R8G8B8_SNORM,
+        //         .offset = offsetof(ChunkMesh::Vertex, nnx),
+        //     },
+        //     {
+        //         .location = 2,
+        //         .binding = 0,
+        //         .format = VK_FORMAT_R8G8B8_UNORM,
+        //         .offset = offsetof(ChunkMesh::Vertex, br),
+        //     },
+        // };
 
-        VkPipelineVertexInputStateCreateInfo vertex_input {
-            .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = sizeof(bindings) / sizeof(bindings[0]),
-            .pVertexBindingDescriptions = &bindings[0],
-            .vertexAttributeDescriptionCount = sizeof(attributes) / sizeof(attributes[0]),
-            .pVertexAttributeDescriptions = &attributes[0],
-        };
+        // VkPipelineVertexInputStateCreateInfo vertex_input {
+        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        //     .vertexBindingDescriptionCount = sizeof(bindings) / sizeof(bindings[0]),
+        //     .pVertexBindingDescriptions = &bindings[0],
+        //     .vertexAttributeDescriptionCount = sizeof(attributes) / sizeof(attributes[0]),
+        //     .pVertexAttributeDescriptions = &attributes[0],
+        // };
 
         VkPipelineRasterizationStateCreateInfo rasterization {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
@@ -97,7 +100,8 @@ struct Shaders {
         };
 
         imr::GraphicsPipeline::StateBuilder stateBuilder = {
-            .vertexInputState = vertex_input,
+            // .vertexInputState = imr::GraphicsPipeline::no_vertex_input(),
+            .vertexInputState = imr::GraphicsPipeline::no_vertex_input(),
             .inputAssemblyState = imr::GraphicsPipeline::simple_triangle_input_assembly(),
             .viewportState = imr::GraphicsPipeline::one_dynamically_sized_viewport(),
             .rasterizationState = rasterization,
@@ -108,8 +112,10 @@ struct Shaders {
         std::vector<imr::ShaderEntryPoint*> entry_point_ptrs;
         for (auto filename : files) {
             VkShaderStageFlagBits stage;
-            if (filename.ends_with("vert.spv"))
-                stage = VK_SHADER_STAGE_VERTEX_BIT;
+            if (filename.ends_with("mesh.spv"))
+                stage = VK_SHADER_STAGE_MESH_BIT_EXT;
+            else if (filename.ends_with("task.spv"))
+                stage = VK_SHADER_STAGE_TASK_BIT_EXT;
             else if (filename.ends_with("frag.spv"))
                 stage = VK_SHADER_STAGE_FRAGMENT_BIT;
             else
@@ -136,7 +142,16 @@ int main(int argc, char** argv) {
     });
 
     imr::Context context;
-    imr::Device device(context);
+    imr::Device device(context, [&](vkb::PhysicalDeviceSelector &selector)
+                       {
+        selector.add_required_extension(VK_EXT_MESH_SHADER_EXTENSION_NAME);
+
+        VkPhysicalDeviceMeshShaderFeaturesEXT mesh_shader_features = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT,
+            .taskShader = true,
+            .meshShader = true,
+        };
+        selector.add_required_extension_features(mesh_shader_features); });
     imr::Swapchain swapchain(device, window);
     imr::FpsCounter fps_counter;
 
@@ -148,6 +163,8 @@ int main(int argc, char** argv) {
     camera = {{0, 0, 3}, {0, 0}, 60};
 
     std::unique_ptr<imr::Image> depthBuffer;
+    std::unique_ptr<imr::Buffer> mesh_buffer;
+    std::unique_ptr<imr::Buffer> vertex_buffer;
 
     auto shaders = std::make_unique<Shaders>(device, swapchain);
 
@@ -296,13 +313,27 @@ int main(int argc, char** argv) {
                     if (!mesh || mesh->num_verts == 0)
                         continue;
 
+                    push_constants.num_verts = mesh->num_verts;
+
+                    // ivec3 vertices = mesh->buf.get();
+
+                    // vertex_buffer = std::make_unique<imr::Buffer>(device, sizeof(ivec3) * mesh->num_verts, VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+                    // push_constants.vertex_buffer = vertex_buffer->device_address();
+                    // vertex_buffer->uploadDataSync(0, vertex_buffer->size, vertices.zzxy);
+
                     push_constants.chunk_position = { chunk->cx, 0, chunk->cz };
-                    vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(push_constants), &push_constants);
+                    // mesh_buffer = std::make_unique<imr::Buffer>(device, sizeof(uint8_t) * 16 * chunk->mesh->num_verts, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+                    mesh_buffer = std::move(chunk->mesh->buf);
+                    // mesh_buffer->uploadDataSync(0, mesh_buffer->size, chunk->mesh.get());
+                    push_constants.mesh_buffer = mesh_buffer->device_address();
 
-                    vkCmdBindVertexBuffers(cmdbuf, 0, 1, &mesh->buf->handle, tmpPtr((VkDeviceSize) 0));
+                    vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_TASK_BIT_EXT | VK_SHADER_STAGE_MESH_BIT_EXT, 0, sizeof(push_constants), &push_constants);
 
+                    // vkCmdBindVertexBuffers(cmdbuf, 0, 1, &mesh->buf->handle, tmpPtr((VkDeviceSize) 0));
+
+                    printf("We are drawing %zu verts\n", mesh->num_verts);
                     assert(mesh->num_verts > 0);
-                    vkCmdDraw(cmdbuf, mesh->num_verts, 1, 0, 0);
+                    vk.cmdDrawMeshTasksEXT(cmdbuf, 1, 0, 0);
                 }
             });
 

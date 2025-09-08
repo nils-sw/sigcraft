@@ -1,0 +1,55 @@
+#version 450
+#extension GL_EXT_mesh_shader : require
+#extension GL_EXT_scalar_block_layout : require
+#extension GL_EXT_buffer_reference : require
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+// struct Shared_Data {
+//     uint instance_id;
+// };
+
+struct Task {
+	uint offset;
+	uint numWorkgroups;
+};
+
+struct Vertex {
+    int vx, vy, vz;
+    uint tt;
+    uint ss;
+    uint nnx, nny, nnz;
+    uint br, bg, bb;
+};
+
+layout(scalar, buffer_reference) buffer VertexBuffer {
+	vec4 vertices[];
+};
+
+layout(scalar, buffer_reference) buffer FaceBuffer {
+	uvec4 faces[];
+};
+
+layout(scalar, buffer_reference) buffer PositionBuffer {
+	vec3 positions[];
+};
+
+layout(scalar, buffer_reference) buffer MeshBuffer {
+	Vertex vertices[];
+};
+
+layout(scalar, push_constant) uniform T {
+	mat4 matrix;
+    ivec3 chunk_position;
+    float time;
+    MeshBuffer mesh_buffer;
+    uint num_verts;
+} push_constants;
+
+taskPayloadSharedEXT Task payload;
+
+void main()
+{
+    payload.offset = gl_WorkGroupID.x;
+    EmitMeshTasksEXT(push_constants.num_verts / 4, 1, 1);
+}

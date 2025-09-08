@@ -2,6 +2,7 @@
 #define SIGCRAFT_CHUNK_MESH_H
 
 #include "imr/imr.h"
+#include "nasl/nasl.h"
 
 #include <cstddef>
 
@@ -16,15 +17,15 @@ struct ChunkMesh {
     ChunkMesh(imr::Device&, ChunkNeighbors& n);
 
     struct Vertex {
-        int16_t vx, vy, vz;
-        uint8_t tt;
-        uint8_t ss;
-        uint8_t nnx, nny, nnz;
-        uint8_t pad;
-        uint8_t br, bg, bb, pad2;
+        int32_t vx, vy, vz;
+        uint32_t tt;
+        uint32_t ss;
+        uint32_t nnx, nny, nnz;
+        // uint32_t pad;
+        uint32_t br, bg, bb;
     };
 
-    static_assert(sizeof(Vertex) == sizeof(uint8_t) * 16);
+    static_assert(sizeof(Vertex) == sizeof(uint32_t) * 11);
 };
 
 #endif
