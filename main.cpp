@@ -104,7 +104,8 @@ struct Shaders {
             .vertexInputState = imr::GraphicsPipeline::no_vertex_input(),
             .inputAssemblyState = imr::GraphicsPipeline::simple_triangle_input_assembly(),
             .viewportState = imr::GraphicsPipeline::one_dynamically_sized_viewport(),
-            .rasterizationState = rasterization,
+            // .rasterizationState = rasterization,
+            .rasterizationState = imr::GraphicsPipeline::solid_filled_polygons(),
             .multisampleState = imr::GraphicsPipeline::one_spp(),
             .depthStencilState = imr::GraphicsPipeline::simple_depth_testing(),
         };
@@ -112,14 +113,18 @@ struct Shaders {
         std::vector<imr::ShaderEntryPoint*> entry_point_ptrs;
         for (auto filename : files) {
             VkShaderStageFlagBits stage;
-            if (filename.ends_with("mesh.spv"))
+            if (filename.ends_with("mesh.spv")) {
+                // printf("Loaded mesh shader\n");
                 stage = VK_SHADER_STAGE_MESH_BIT_EXT;
-            else if (filename.ends_with("task.spv"))
+            } else if (filename.ends_with("task.spv")) {
+                // printf("Loaded task shader\n");
                 stage = VK_SHADER_STAGE_TASK_BIT_EXT;
-            else if (filename.ends_with("frag.spv"))
+            } else if (filename.ends_with("frag.spv")) {
+                // printf("Loaded frag shader\n");
                 stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-            else
+            } else {
                 throw std::runtime_error("Unknown suffix");
+            }
             modules.push_back(std::make_unique<imr::ShaderModule>(d, std::move(filename)));
             entry_points.push_back(std::make_unique<imr::ShaderEntryPoint>(*modules.back(), stage, "main"));
             entry_point_ptrs.push_back(entry_points.back().get());
@@ -142,8 +147,7 @@ int main(int argc, char** argv) {
     });
 
     imr::Context context;
-    imr::Device device(context, [&](vkb::PhysicalDeviceSelector &selector)
-                       {
+    imr::Device device(context, [&](vkb::PhysicalDeviceSelector &selector) {
         selector.add_required_extension(VK_EXT_MESH_SHADER_EXTENSION_NAME);
 
         VkPhysicalDeviceMeshShaderFeaturesEXT mesh_shader_features = {
@@ -323,17 +327,16 @@ int main(int argc, char** argv) {
 
                     push_constants.chunk_position = { chunk->cx, 0, chunk->cz };
                     // mesh_buffer = std::make_unique<imr::Buffer>(device, sizeof(uint8_t) * 16 * chunk->mesh->num_verts, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
-                    mesh_buffer = std::move(chunk->mesh->buf);
                     // mesh_buffer->uploadDataSync(0, mesh_buffer->size, chunk->mesh.get());
-                    push_constants.mesh_buffer = mesh_buffer->device_address();
+                    push_constants.mesh_buffer = chunk->mesh->buf->device_address();
 
-                    vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_TASK_BIT_EXT | VK_SHADER_STAGE_MESH_BIT_EXT, 0, sizeof(push_constants), &push_constants);
+                    vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_TASK_BIT_EXT, 0, sizeof(push_constants), &push_constants);
 
                     // vkCmdBindVertexBuffers(cmdbuf, 0, 1, &mesh->buf->handle, tmpPtr((VkDeviceSize) 0));
 
-                    printf("We are drawing %zu verts\n", mesh->num_verts);
+                    //printf("We are drawing %zu verts\n", mesh->num_verts);
                     assert(mesh->num_verts > 0);
-                    vk.cmdDrawMeshTasksEXT(cmdbuf, 1, 0, 0);
+                    vk.cmdDrawMeshTasksEXT(cmdbuf, mesh->num_verts / 6, 1, 1);
                 }
             });
 
