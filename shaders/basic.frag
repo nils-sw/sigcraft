@@ -5,7 +5,7 @@
 #extension GL_EXT_buffer_reference : require
 
 
-layout(location = 1) perprimitiveEXT in PrimitiveInput{
+layout(location = 0) perprimitiveEXT in PrimitiveInput{
     vec4 color;
 } primitiveInput;
 
