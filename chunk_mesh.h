@@ -1,31 +1,36 @@
 #ifndef SIGCRAFT_CHUNK_MESH_H
 #define SIGCRAFT_CHUNK_MESH_H
 
+#include "world.h"
+
 #include "imr/imr.h"
-#include "nasl/nasl.h"
 
 #include <cstddef>
 
 struct ChunkNeighbors {
-    const ChunkData* neighbours[3][3];
+    std::shared_ptr<Chunk> neighbours[3][3];
+};
+
+struct ChunkNeighborsUnsafe {
+    ChunkData* neighbours[3][3];
 };
 
 struct ChunkMesh {
     std::unique_ptr<imr::Buffer> buf;
     size_t num_verts;
 
-    ChunkMesh(imr::Device&, ChunkNeighbors& n);
+    ChunkMesh(imr::Device&, std::mutex& device_mutex, ChunkNeighbors& n);
 
     struct Vertex {
-        int32_t vx, vy, vz;
-        uint32_t tt;
-        uint32_t ss;
-        uint32_t nnx, nny, nnz;
-        // uint32_t pad;
-        uint32_t br, bg, bb;
+        int16_t vx, vy, vz;
+        uint8_t tt;
+        uint8_t ss;
+        uint8_t nnx, nny, nnz;
+        uint8_t pad;
+        uint8_t br, bg, bb, pad2;
     };
 
-    static_assert(sizeof(Vertex) == sizeof(uint32_t) * 11);
+    static_assert(sizeof(Vertex) == sizeof(uint8_t) * 16);
 };
 
 #endif

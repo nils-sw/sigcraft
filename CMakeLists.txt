@@ -19,6 +19,8 @@ find_package(nasl)
 add_executable(sigcraft main.cpp camera.cpp chunk_mesh.cpp world.cpp)
 target_link_libraries(sigcraft imr enklume nasl::nasl)
 
+target_include_directories(sigcraft PUBLIC "thirdparty/rustex/")
+
 add_custom_target(mesh_shading_mesh_spv COMMAND ${GLSLANG_EXE} -V --target-env vulkan1.3 -S mesh ${CMAKE_CURRENT_SOURCE_DIR}/shaders/mesh_shader.mesh -o ${CMAKE_CURRENT_BINARY_DIR}/mesh_shader.mesh.spv)
 add_dependencies(sigcraft mesh_shading_mesh_spv)
 add_custom_target(mesh_shading_task_spv COMMAND ${GLSLANG_EXE} -V --target-env vulkan1.3 -S task ${CMAKE_CURRENT_SOURCE_DIR}/shaders/mesh_shader.task -o ${CMAKE_CURRENT_BINARY_DIR}/mesh_shader.task.spv)

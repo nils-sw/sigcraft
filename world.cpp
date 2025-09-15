@@ -1,5 +1,6 @@
 #include "world.h"
 
+#include "rustex.h"
 #include <cassert>
 
 World::World(const char* filename) {
@@ -17,7 +18,7 @@ World::~World() {
             break;
         }
         fprintf(stderr, "Some chunks are still loaded, waiting...");
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1)); // Use this instead of sleep(1)
     }
     cunk_close_mcworld(enkl_world);
 }

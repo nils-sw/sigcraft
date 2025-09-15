@@ -17,6 +17,8 @@ struct {
     mat4 matrix;
     ivec3 chunk_position;
     float time;
+    VkDeviceAddress mesh_buffer;
+    int32_t num_verts;
 } push_constants;
 
 Camera camera = {
@@ -35,7 +37,7 @@ void camera_update(GLFWwindow*, CameraInput* input);
 bool reload_shaders = false;
 
 struct Shaders {
-    std::vector<std::string> files = { "basic.vert.spv", "basic.frag.spv" };
+    std::vector<std::string> files = { "mesh_shader.mesh.spv", "mesh_shader.task.spv", "basic.frag.spv" };
 
     std::vector<std::unique_ptr<imr::ShaderModule>> modules;
     std::vector<std::unique_ptr<imr::ShaderEntryPoint>> entry_points;
@@ -103,7 +105,7 @@ struct Shaders {
         };
 
         imr::GraphicsPipeline::StateBuilder stateBuilder = {
-            .vertexInputState = vertex_input,
+            .vertexInputState = imr::GraphicsPipeline::no_vertex_input(),
             .inputAssemblyState = imr::GraphicsPipeline::simple_triangle_input_assembly(),
             .viewportState = imr::GraphicsPipeline::one_dynamically_sized_viewport(),
             .rasterizationState = rasterization,
@@ -114,12 +116,18 @@ struct Shaders {
         std::vector<imr::ShaderEntryPoint*> entry_point_ptrs;
         for (auto filename : files) {
             VkShaderStageFlagBits stage;
-            if (filename.ends_with("vert.spv"))
-                stage = VK_SHADER_STAGE_VERTEX_BIT;
-            else if (filename.ends_with("frag.spv"))
+            if (filename.ends_with("mesh.spv")) {
+                // printf("Loaded mesh shader\n");
+                stage = VK_SHADER_STAGE_MESH_BIT_EXT;
+            } else if (filename.ends_with("task.spv")) {
+                // printf("Loaded task shader\n");
+                stage = VK_SHADER_STAGE_TASK_BIT_EXT;
+            } else if (filename.ends_with("frag.spv")) {
+                // printf("Loaded frag shader\n");
                 stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-            else
+            } else {
                 throw std::runtime_error("Unknown suffix");
+            }
             modules.push_back(std::make_unique<imr::ShaderModule>(d, std::move(filename)));
             entry_points.push_back(std::make_unique<imr::ShaderEntryPoint>(*modules.back(), stage, "main"));
             entry_point_ptrs.push_back(entry_points.back().get());
@@ -150,7 +158,16 @@ int main(int argc, char** argv) {
     });
 
     imr::Context context;
-    imr::Device device(context);
+    imr::Device device(context, [&](vkb::PhysicalDeviceSelector& selector) {
+        selector.add_required_extension(VK_EXT_MESH_SHADER_EXTENSION_NAME);
+
+        VkPhysicalDeviceMeshShaderFeaturesEXT mesh_shader_features = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT,
+            .taskShader = true,
+            .meshShader = true,
+        };
+        selector.add_required_extension_features(mesh_shader_features);
+    });
     std::mutex device_mutex;
     imr::Swapchain swapchain(device, window);
     imr::FpsCounter fps_counter;
@@ -315,13 +332,14 @@ int main(int argc, char** argv) {
                     if (mesh->num_verts == 0)
                         continue;
 
-                    push_constants.chunk_position = { chunk->cx, 0, chunk->cz };
-                    vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(push_constants), &push_constants);
+                    push_constants.mesh_buffer = mesh->buf->device_address();
+                    push_constants.num_verts = mesh->num_verts;
 
-                    vkCmdBindVertexBuffers(cmdbuf, 0, 1, &mesh->buf->handle, tmpPtr((VkDeviceSize) 0));
+                    push_constants.chunk_position = { chunk->cx, 0, chunk->cz };
+                    vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_TASK_BIT_EXT, 0, sizeof(push_constants), &push_constants);
 
                     assert(mesh->num_verts > 0);
-                    vkCmdDraw(cmdbuf, mesh->num_verts, 1, 0, 0);
+                    vk.cmdDrawMeshTasksEXT(cmdbuf, mesh->num_verts / 6, 1, 1);
 
                     context.frame().addCleanupAction([=, mesh = mesh]() {
 
