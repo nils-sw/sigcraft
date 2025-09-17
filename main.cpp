@@ -32,7 +32,8 @@ void camera_update(GLFWwindow*, CameraInput* input);
 bool reload_shaders = false;
 
 struct Shaders {
-    std::vector<std::string> files = {"mesh_shader.mesh.spv", "mesh_shader.task.spv", "basic.frag.spv"};
+    // std::vector<std::string> files = {"mesh_shader.mesh.spv", "mesh_shader.task.spv", "basic.frag.spv"};
+    std::vector<std::string> files = {"mesh_shader.mesh.spv", "basic.frag.spv"};
 
     std::vector<std::unique_ptr<imr::ShaderModule>> modules;
     std::vector<std::unique_ptr<imr::ShaderEntryPoint>> entry_points;
@@ -293,7 +294,7 @@ int main(int argc, char** argv) {
                 int player_chunk_x = camera.position.x / 16;
                 int player_chunk_z = camera.position.z / 16;
 
-                int radius = 24;
+                int radius = 12;
                 for (int dx = -radius; dx <= radius; dx++) {
                     for (int dz = -radius; dz <= radius; dz++) {
                         load_chunk(player_chunk_x + dx, player_chunk_z + dz);
@@ -317,26 +318,26 @@ int main(int argc, char** argv) {
                     if (!mesh || mesh->num_verts == 0)
                         continue;
 
+                        
+                        // ivec3 vertices = mesh->buf.get();
+                        
+                        // vertex_buffer = std::make_unique<imr::Buffer>(device, sizeof(ivec3) * mesh->num_verts, VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+                        // push_constants.vertex_buffer = vertex_buffer->device_address();
+                        // vertex_buffer->uploadDataSync(0, vertex_buffer->size, vertices.zzxy);
+                        
                     push_constants.num_verts = mesh->num_verts;
-
-                    // ivec3 vertices = mesh->buf.get();
-
-                    // vertex_buffer = std::make_unique<imr::Buffer>(device, sizeof(ivec3) * mesh->num_verts, VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-                    // push_constants.vertex_buffer = vertex_buffer->device_address();
-                    // vertex_buffer->uploadDataSync(0, vertex_buffer->size, vertices.zzxy);
-
                     push_constants.chunk_position = { chunk->cx, 0, chunk->cz };
                     // mesh_buffer = std::make_unique<imr::Buffer>(device, sizeof(uint8_t) * 16 * chunk->mesh->num_verts, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
                     // mesh_buffer->uploadDataSync(0, mesh_buffer->size, chunk->mesh.get());
                     push_constants.mesh_buffer = chunk->mesh->buf->device_address();
 
-                    vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_MESH_BIT_EXT | VK_SHADER_STAGE_TASK_BIT_EXT, 0, sizeof(push_constants), &push_constants);
+                    vkCmdPushConstants(cmdbuf, pipeline->layout(), VK_SHADER_STAGE_MESH_BIT_EXT, 0, sizeof(push_constants), &push_constants);
 
                     // vkCmdBindVertexBuffers(cmdbuf, 0, 1, &mesh->buf->handle, tmpPtr((VkDeviceSize) 0));
 
                     //printf("We are drawing %zu verts\n", mesh->num_verts);
                     assert(mesh->num_verts > 0);
-                    vk.cmdDrawMeshTasksEXT(cmdbuf, mesh->num_verts / 6, 1, 1);
+                    vk.cmdDrawMeshTasksEXT(cmdbuf, mesh->num_verts / 4, 1, 1);
                 }
             });
 

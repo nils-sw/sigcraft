@@ -99,7 +99,8 @@ static bool is_solid(BlockData block)
 static void process_slice(
     int d0, int d1, int d2,
     const ChunkData *chunk, ChunkNeighbors &neighbours,
-    std::vector<uint8_t> &g, size_t *num_verts)
+    std::vector<uint8_t> &g, size_t *num_verts,
+    std::vector<ChunkMesh::Meshlet> &meshlets)
 {
     ChunkMesh::Vertex v;
 
@@ -142,6 +143,8 @@ static void process_slice(
                 }
             }
         }
+
+        ChunkMesh::Meshlet current_meshlet;
 
         // 2. Greedily generate quads from the mask.
         for (int j = 0; j < d1_max; ++j)
@@ -196,8 +199,8 @@ static void process_slice(
                             generate_vertex(v, g, color, x + 1, y, z, 0, 0, 1, 0, 0);
                             generate_vertex(v, g, color, x + 1, y, z + w, w, 0, 1, 0, 0);
                             generate_vertex(v, g, color, x + 1, y + h, z + w, w, h, 1, 0, 0);
-                            generate_vertex(v, g, color, x + 1, y, z, 0, 0, 1, 0, 0);
-                            generate_vertex(v, g, color, x + 1, y + h, z + w, w, h, 1, 0, 0);
+                            // generate_vertex(v, g, color, x + 1, y, z, 0, 0, 1, 0, 0);
+                            // generate_vertex(v, g, color, x + 1, y + h, z + w, w, h, 1, 0, 0);
                             generate_vertex(v, g, color, x + 1, y + h, z, 0, h, 1, 0, 0);
                         }
                         else // -X face, winding is CCW when viewed from negative X
@@ -205,8 +208,8 @@ static void process_slice(
                             generate_vertex(v, g, color, x, y, z, 0, 0, -1, 0, 0);
                             generate_vertex(v, g, color, x, y + h, z, 0, h, -1, 0, 0);
                             generate_vertex(v, g, color, x, y + h, z + w, w, h, -1, 0, 0);
-                            generate_vertex(v, g, color, x, y, z, 0, 0, -1, 0, 0);
-                            generate_vertex(v, g, color, x, y + h, z + w, w, h, -1, 0, 0);
+                            // generate_vertex(v, g, color, x, y, z, 0, 0, -1, 0, 0);
+                            // generate_vertex(v, g, color, x, y + h, z + w, w, h, -1, 0, 0);
                             generate_vertex(v, g, color, x, y, z + w, w, 0, -1, 0, 0);
                         }
                         break;
@@ -216,8 +219,8 @@ static void process_slice(
                             generate_vertex(v, g, color, x, y + 1, z, 0, 0, 0, 1, 0);
                             generate_vertex(v, g, color, x + h, y + 1, z, h, 0, 0, 1, 0);
                             generate_vertex(v, g, color, x + h, y + 1, z + w, h, w, 0, 1, 0);
-                            generate_vertex(v, g, color, x, y + 1, z, 0, 0, 0, 1, 0);
-                            generate_vertex(v, g, color, x + h, y + 1, z + w, h, w, 0, 1, 0);
+                            // generate_vertex(v, g, color, x, y + 1, z, 0, 0, 0, 1, 0);
+                            // generate_vertex(v, g, color, x + h, y + 1, z + w, h, w, 0, 1, 0);
                             generate_vertex(v, g, color, x, y + 1, z + w, 0, w, 0, 1, 0);
                         }
                         else // -Y face, winding is CCW when viewed from negative Y
@@ -225,8 +228,8 @@ static void process_slice(
                             generate_vertex(v, g, color, x, y, z, 0, 0, 0, -1, 0);
                             generate_vertex(v, g, color, x, y, z + w, w, 0, 0, -1, 0);
                             generate_vertex(v, g, color, x + h, y, z + w, w, h, 0, -1, 0);
-                            generate_vertex(v, g, color, x, y, z, 0, 0, 0, -1, 0);
-                            generate_vertex(v, g, color, x + h, y, z + w, w, h, 0, -1, 0);
+                            // generate_vertex(v, g, color, x, y, z, 0, 0, 0, -1, 0);
+                            // generate_vertex(v, g, color, x + h, y, z + w, w, h, 0, -1, 0);
                             generate_vertex(v, g, color, x + h, y, z, 0, h, 0, -1, 0);
                         }
                         break;
@@ -236,8 +239,8 @@ static void process_slice(
                             generate_vertex(v, g, color, x, y, z + 1, 0, 0, 0, 0, 1);
                             generate_vertex(v, g, color, x, y + h, z + 1, 0, h, 0, 0, 1);
                             generate_vertex(v, g, color, x + w, y + h, z + 1, w, h, 0, 0, 1);
-                            generate_vertex(v, g, color, x, y, z + 1, 0, 0, 0, 0, 1);
-                            generate_vertex(v, g, color, x + w, y + h, z + 1, w, h, 0, 0, 1);
+                            // generate_vertex(v, g, color, x, y, z + 1, 0, 0, 0, 0, 1);
+                            // generate_vertex(v, g, color, x + w, y + h, z + 1, w, h, 0, 0, 1);
                             generate_vertex(v, g, color, x + w, y, z + 1, w, 0, 0, 0, 1);
                         }
                         else // -Z face, winding is CCW when viewed from negative Z
@@ -245,13 +248,23 @@ static void process_slice(
                             generate_vertex(v, g, color, x, y, z, 0, 0, 0, 0, -1);
                             generate_vertex(v, g, color, x + w, y, z, w, 0, 0, 0, -1);
                             generate_vertex(v, g, color, x + w, y + h, z, w, h, 0, 0, -1);
-                            generate_vertex(v, g, color, x, y, z, 0, 0, 0, 0, -1);
-                            generate_vertex(v, g, color, x + w, y + h, z, w, h, 0, 0, -1);
+                            // generate_vertex(v, g, color, x, y, z, 0, 0, 0, 0, -1);
+                            // generate_vertex(v, g, color, x + w, y + h, z, w, h, 0, 0, -1);
                             generate_vertex(v, g, color, x, y + h, z, 0, h, 0, 0, -1);
                         }
                         break;
                     }
-                    *num_verts += 6;
+                    *num_verts += 4;
+
+                    if (current_meshlet.vertex_positions.size() >= 32)
+                    {
+                        // Meshlet is full, store it and start a new one
+                        meshlets.push_back(current_meshlet);
+                        current_meshlet = ChunkMesh::Meshlet();
+                        current_meshlet.vertex_positions[0] = { (uint32_t)(x), (uint32_t)(y), (uint32_t)(z) };
+                        current_meshlet.triangle_indices[0] = { (uint32_t)(*num_verts - 4), (uint32_t)(*num_verts - 3), (uint32_t)(*num_verts - 2), (uint32_t)(*num_verts - 1) };
+                    }
+
 
                     // 4. Clear processed area of the mask.
                     for (int l = 0; l < h; ++l)
@@ -275,10 +288,11 @@ static void process_slice(
 void chunk_mesh(const ChunkData *chunk, ChunkNeighbors &neighbours, std::vector<uint8_t> &g, size_t *num_verts)
 {
     *num_verts = 0;
+    std::vector<ChunkMesh::Meshlet> meshlets;
 
-    process_slice(0, 1, 2, chunk, neighbours, g, num_verts); // Y-Z planes -> X faces
-    process_slice(1, 0, 2, chunk, neighbours, g, num_verts); // X-Z planes -> Y faces
-    process_slice(2, 1, 0, chunk, neighbours, g, num_verts); // Y-X planes -> Z faces
+    process_slice(0, 1, 2, chunk, neighbours, g, num_verts, meshlets); // Y-Z planes -> X faces
+    process_slice(1, 0, 2, chunk, neighbours, g, num_verts, meshlets); // X-Z planes -> Y faces
+    process_slice(2, 1, 0, chunk, neighbours, g, num_verts, meshlets); // Y-X planes -> Z faces
 }
 
 // Undefine macro to prevent it from leaking to other compilation units.

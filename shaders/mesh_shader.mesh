@@ -36,7 +36,7 @@ layout(scalar, push_constant) uniform T {
 } push_constants;
 
 layout(local_size_x = 2, local_size_y = 1, local_size_z = 1) in;
-layout(triangles, max_vertices = 24, max_primitives = 12) out;
+layout(triangles, max_vertices = 6, max_primitives = 2) out;
 
 // layout(location = 0) out VertexOutput
 // {
@@ -64,40 +64,36 @@ struct Task {
 taskPayloadSharedEXT Task payload;
 
 void main() {
-	SetMeshOutputsEXT(6, 2);
+	SetMeshOutputsEXT(4, 2);
 
 	uint sharedData = payload.offset * gl_NumWorkGroups.x;
 
     bool is_even = gl_LocalInvocationID.x % 2 == 0;
 	uint triId = gl_LocalInvocationID.x;
 	uint faceId = triId / 2;
-	uint vtx_offset = (sharedData + gl_WorkGroupID.x) * 6;
+	uint vtx_offset = gl_WorkGroupID.x * 4;
 
-	vec3 color = push_constants.mesh_buffer.vertices[vtx_offset].color;
+	vec3 color = push_constants.mesh_buffer.vertices[vtx_offset].color / vec3(255.0);
 
 	mat4 mvp = push_constants.matrix;
 
 	if (is_even) {
 		vec3 vertex0 = push_constants.mesh_buffer.vertices[vtx_offset].pos + push_constants.chunk_position * 16;
 		vec3 vertex1 = push_constants.mesh_buffer.vertices[vtx_offset + 1].pos + push_constants.chunk_position * 16;
-		vec3 vertex2 = push_constants.mesh_buffer.vertices[vtx_offset + 2].pos + push_constants.chunk_position * 16;
 		gl_MeshVerticesEXT[0].gl_Position = mvp * vec4(vertex0, 1);
 		gl_MeshVerticesEXT[1].gl_Position = mvp * vec4(vertex1, 1);
-		gl_MeshVerticesEXT[2].gl_Position = mvp * vec4(vertex2, 1);
 
 	} else {
-		vec3 vertex0 = push_constants.mesh_buffer.vertices[vtx_offset + 3].pos + push_constants.chunk_position * 16;
-		vec3 vertex1 = push_constants.mesh_buffer.vertices[vtx_offset + 4].pos + push_constants.chunk_position * 16;
-		vec3 vertex2 = push_constants.mesh_buffer.vertices[vtx_offset + 5].pos + push_constants.chunk_position * 16;
-		gl_MeshVerticesEXT[3].gl_Position = mvp * vec4(vertex0, 1);
-		gl_MeshVerticesEXT[4].gl_Position = mvp * vec4(vertex1, 1);
-		gl_MeshVerticesEXT[5].gl_Position = mvp * vec4(vertex2, 1);
+		vec3 vertex0 = push_constants.mesh_buffer.vertices[vtx_offset + 2].pos + push_constants.chunk_position * 16;
+		vec3 vertex1 = push_constants.mesh_buffer.vertices[vtx_offset + 3].pos + push_constants.chunk_position * 16;
+		gl_MeshVerticesEXT[2].gl_Position = mvp * vec4(vertex0, 1);
+		gl_MeshVerticesEXT[3].gl_Position = mvp * vec4(vertex1, 1);
 	}
 	if (is_even) {
     	gl_PrimitiveTriangleIndicesEXT[triId] = uvec3(0, 1, 2);
 	    primitiveOutput[triId].color = vec4(color, 1.0);
     } else {
-    	gl_PrimitiveTriangleIndicesEXT[triId] = uvec3(3, 4, 5);
+    	gl_PrimitiveTriangleIndicesEXT[triId] = uvec3(0, 2, 3);
 	    primitiveOutput[triId].color = vec4(color, 1.0);
     }
 }

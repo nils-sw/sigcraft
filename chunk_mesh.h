@@ -16,6 +16,11 @@ struct ChunkMesh {
 
     ChunkMesh(imr::Device&, ChunkNeighbors& n);
 
+    struct Meshlet {
+        std::array<std::array<uint32_t, 3>, 32> vertex_positions;
+        std::array<std::array<uint32_t, 3>, 32> triangle_indices;
+    };
+
     struct Vertex {
         int32_t vx, vy, vz;
         uint32_t tt;
