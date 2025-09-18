@@ -12,13 +12,19 @@ struct ChunkNeighbors {
 
 struct ChunkMesh {
     std::unique_ptr<imr::Buffer> buf;
-    size_t num_verts;
+    size_t num_verts = 0;
+    size_t meshlet_count = 0;
 
     ChunkMesh(imr::Device&, ChunkNeighbors& n);
 
     struct Meshlet {
-        std::array<std::array<uint32_t, 3>, 32> vertex_positions;
-        std::array<std::array<uint32_t, 3>, 32> triangle_indices;
+        static constexpr int size = 64;
+
+        std::array<std::array<int8_t, 4>, size> vertex_positions = {};
+        std::array<std::array<uint8_t, 4>, size> triangle_indices = {};
+        std::array<std::array<uint8_t, 4>, size> triangle_colors = {};
+        uint32_t num_verts = 0;
+        uint32_t num_tris = 0;
     };
 
     struct Vertex {

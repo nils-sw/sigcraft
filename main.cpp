@@ -34,7 +34,6 @@ bool reload_shaders = false;
 struct Shaders {
     // std::vector<std::string> files = {"mesh_shader.mesh.spv", "mesh_shader.task.spv", "basic.frag.spv"};
     std::vector<std::string> files = {"mesh_shader.mesh.spv", "basic.frag.spv"};
-
     std::vector<std::unique_ptr<imr::ShaderModule>> modules;
     std::vector<std::unique_ptr<imr::ShaderEntryPoint>> entry_points;
     std::unique_ptr<imr::GraphicsPipeline> pipeline;
@@ -337,7 +336,8 @@ int main(int argc, char** argv) {
 
                     //printf("We are drawing %zu verts\n", mesh->num_verts);
                     assert(mesh->num_verts > 0);
-                    vk.cmdDrawMeshTasksEXT(cmdbuf, mesh->num_verts / 4, 1, 1);
+                    assert(mesh->meshlet_count > 0);
+                    vk.cmdDrawMeshTasksEXT(cmdbuf, mesh->meshlet_count, 1, 1);
                 }
             });
 
