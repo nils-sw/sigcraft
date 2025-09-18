@@ -32,8 +32,8 @@ void camera_update(GLFWwindow*, CameraInput* input);
 bool reload_shaders = false;
 
 struct Shaders {
-    std::vector<std::string> files = {"mesh_shader.mesh.spv", "mesh_shader.task.spv", "basic.frag.spv"};
-
+    // std::vector<std::string> files = {"mesh_shader.mesh.spv", "mesh_shader.task.spv", "basic.frag.spv"};
+    std::vector<std::string> files = {"mesh_shader.mesh.spv", "basic.frag.spv"};
     std::vector<std::unique_ptr<imr::ShaderModule>> modules;
     std::vector<std::unique_ptr<imr::ShaderEntryPoint>> entry_points;
     std::unique_ptr<imr::GraphicsPipeline> pipeline;

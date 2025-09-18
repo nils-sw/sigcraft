@@ -58,7 +58,7 @@ static inline void generate_vertex(
         vertex_count++;
     }
 
-    meshlets.back().triangle_colors[triangle_index] = color;
+    meshlets.back().triangle_colors[triangle_index] = color * 255;
 
     triangle_vertex_index = (triangle_vertex_index + 1) % 3;
     if (triangle_vertex_index == 0) {
