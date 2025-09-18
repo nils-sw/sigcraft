@@ -8,6 +8,7 @@ extern "C" {
 #include <vector>
 #include <functional> // For std::function
 #include <cstring>    // For memcpy
+#include <algorithm>
 
 // For hashing tuples
 #include <tuple>
@@ -94,10 +95,26 @@ enum orientation {
     POS_Z, NEG_Z
 };
 
+
+
+void face_color_shading(orientation face_orientation, nasl::vec3 &base_color) {
+    float x_shift = 0.05f * (face_orientation == POS_X ? 1 : (face_orientation == NEG_X ? -1 : 0));
+    float y_shift = 0.05f * (face_orientation == POS_Y ? 1 : (face_orientation == NEG_Y ? -1 : 0));
+    float z_shift = 0.05f * (face_orientation == POS_Z ? 1 : (face_orientation == NEG_Z ? -1 : 0));
+
+    nasl::vec3 translated_color;
+
+    translated_color[0] = std::clamp(base_color[0] + nasl::vec3{x_shift, y_shift, z_shift}[0], 0.0f, 1.0f);
+    translated_color[1] = std::clamp(base_color[1] + nasl::vec3{x_shift, y_shift, z_shift}[1], 0.0f, 1.0f);
+    translated_color[2] = std::clamp(base_color[2] + nasl::vec3{x_shift, y_shift, z_shift}[2], 0.0f, 1.0f);
+
+    base_color = translated_color;
+}
+
 void add_face(orientation face_orientation,
               int w, int h,
               int x, int y, int z,
-              const nasl::vec3 &color,
+              nasl::vec3 &color,
               ChunkMesh::Vertex &v,
               std::vector<ChunkMesh::Meshlet> &meshlets,
               std::unordered_map<std::tuple<int, int, int>, int> &index_map,
@@ -121,6 +138,8 @@ void add_face(orientation face_orientation,
         triangle_index = 0;
         triangle_vertex_index = 0;
     }
+
+    face_color_shading(face_orientation, color);
 
     if (face_orientation == POS_X) {
         generate_vertex(v, color, x + 1, y, z, 0, 0, 1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
