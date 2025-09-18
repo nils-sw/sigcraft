@@ -53,12 +53,14 @@ static inline void generate_vertex(
         meshlets.back().triangle_indices[triangle_index][triangle_vertex_index] = index_map[{vx, vy, vz}];
     } else {
         index_map[{vx, vy, vz}] = vertex_count;
-        meshlets.back().vertex_positions[vertex_count] = {uint32_t(vx), uint32_t(vy), uint32_t(vz)};
-        meshlets.back().triangle_indices[triangle_index][triangle_vertex_index] = uint32_t(vertex_count);
+        meshlets.back().vertex_positions[vertex_count] = { int8_t(vx), int8_t(vy), int8_t(vz) };
+        meshlets.back().triangle_indices[triangle_index][triangle_vertex_index] = uint8_t(vertex_count);
         vertex_count++;
     }
 
-    meshlets.back().triangle_colors[triangle_index] = color * 255;
+    meshlets.back().triangle_colors[triangle_index][0] = std::min<uint8_t>(255u, std::max<uint8_t>(0, uint8_t(color.x * 255)));
+    meshlets.back().triangle_colors[triangle_index][1] = std::min<uint8_t>(255u, std::max<uint8_t>(0, uint8_t(color.y * 255)));
+    meshlets.back().triangle_colors[triangle_index][2] = std::min<uint8_t>(255u, std::max<uint8_t>(0, uint8_t(color.z * 255)));
 
     triangle_vertex_index = (triangle_vertex_index + 1) % 3;
     if (triangle_vertex_index == 0) {
@@ -102,61 +104,65 @@ void add_face(orientation face_orientation,
               int &vertex_count,
               int &triangle_index,
               int &triangle_vertex_index,
-              int &num_verts)
+              int &total_verts)
 {
+    const int new_tris = 2;
+    const int max_new_vertices = 4;
 
-    if (vertex_count > 27)
+    if (vertex_count + max_new_vertices > ChunkMesh::Meshlet::size || triangle_index + new_tris > ChunkMesh::Meshlet::size)
     {
         meshlets.back().num_verts = vertex_count;
         meshlets.back().num_tris = triangle_index;
         // Meshlet is full, store it and start a new one
         meshlets.push_back(ChunkMesh::Meshlet());
         index_map.clear();
-        num_verts += vertex_count;
+        total_verts += vertex_count;
         vertex_count = 0;
+        triangle_index = 0;
+        triangle_vertex_index = 0;
     }
 
     if (face_orientation == POS_X) {
         generate_vertex(v, color, x + 1, y, z, 0, 0, 1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + 1, y, z + w, w, 0, 1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + 1, y + h, z + w, w, h, 1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x + 1, y, z, 0, 0, 1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x + 1, y + h, z + w, w, h, 1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x + 1, y, z, 0, 0, 1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x + 1, y + h, z + w, w, h, 1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + 1, y + h, z, 0, h, 1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
     } else if (face_orientation == NEG_X) {
         generate_vertex(v, color, x, y, z, 0, 0, -1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x, y + h, z, 0, h, -1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x, y + h, z + w, w, h, -1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x, y, z, 0, 0, -1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x, y + h, z + w, w, h, -1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x, y, z, 0, 0, -1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x, y + h, z + w, w, h, -1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x, y, z + w, w, 0, -1, 0, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
     } else if (face_orientation == POS_Y) {
         generate_vertex(v, color, x, y + 1, z, 0, 0, 0, 1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + h, y + 1, z, h, 0, 0, 1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + h, y + 1, z + w, h, w, 0, 1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x, y + 1, z, 0, 0, 0, 1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x + h, y + 1, z + w, h, w, 0, 1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x, y + 1, z, 0, 0, 0, 1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x + h, y + 1, z + w, h, w, 0, 1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x, y + 1, z + w, 0, w, 0, 1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
     } else if (face_orientation == NEG_Y) {
         generate_vertex(v, color, x, y, z, 0, 0, 0, -1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x, y, z + w, w, 0, 0, -1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + h, y, z + w, w, h, 0, -1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x, y, z, 0, 0, 0, -1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x + h, y, z + w, w, h, 0, -1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x, y, z, 0, 0, 0, -1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x + h, y, z + w, w, h, 0, -1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + h, y, z, 0, h, 0, -1, 0, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
     } else if (face_orientation == POS_Z) {
         generate_vertex(v, color, x, y, z + 1, 0, 0, 0, 0, 1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x, y + h, z + 1, 0, h, 0, 0, 1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + w, y + h, z + 1, w, h, 0, 0, 1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x, y, z + 1, 0, 0, 0, 0, 1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x + w, y + h, z + 1, w, h, 0, 0, 1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x, y, z + 1, 0, 0, 0, 0, 1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x + w, y + h, z + 1, w, h, 0, 0, 1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + w, y, z + 1, w, 0, 0, 0, 1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
     } else if (face_orientation == NEG_Z) {
         generate_vertex(v, color, x, y, z, 0, 0, 0, 0, -1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + w, y, z, w, 0, 0, 0, -1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x + w, y + h, z, w, h, 0, 0, -1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x, y, z, 0, 0, 0, 0, -1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
-        // generate_vertex(v, color, x + w, y + h, z, w, h, 0, 0, -1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x, y, z, 0, 0, 0, 0, -1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
+        generate_vertex(v, color, x + w, y + h, z, w, h, 0, 0, -1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
         generate_vertex(v, color, x, y + h, z, 0, h, 0, 0, -1, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index);
     }
 }
@@ -365,6 +371,11 @@ void chunk_mesh(const ChunkData *chunk, ChunkNeighbors &neighbours, std::vector<
     process_slice(0, 1, 2, chunk, neighbours, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index, total_verts); // Y-Z planes -> X faces
     process_slice(1, 0, 2, chunk, neighbours, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index, total_verts); // X-Z planes -> Y faces
     process_slice(2, 1, 0, chunk, neighbours, meshlets, index_map, vertex_count, triangle_index, triangle_vertex_index, total_verts); // Y-X planes -> Z faces
+
+    // don't forget the last one,,,
+    meshlets.back().num_verts = vertex_count;
+    meshlets.back().num_tris = triangle_index;
+    total_verts += vertex_count;
     *num_verts = total_verts;
 }
 
@@ -388,9 +399,8 @@ ChunkMesh::ChunkMesh(imr::Device &d, ChunkNeighbors &n)
     size_t buffer_size = meshlets.size() * sizeof(ChunkMesh::Meshlet);
     void *buffer = meshlets.data();
     meshlet_count = meshlets.size();
-    
-    if (buffer_size > 0)
-    {
+
+    if (buffer_size > 0) {
         buf = std::make_unique<imr::Buffer>(d, buffer_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
         buf->uploadDataSync(0, buffer_size, buffer);
     }

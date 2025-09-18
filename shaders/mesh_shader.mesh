@@ -2,17 +2,20 @@
 #extension GL_EXT_mesh_shader : require
 #extension GL_EXT_scalar_block_layout : require
 #extension GL_EXT_buffer_reference : require
+#extension GL_EXT_shader_explicit_arithmetic_types: require
 
 struct Tri {
-	uvec3 indices;
+	u8vec4 indices;
 };
 
+#define MESHLET_SIZE 64
+
 struct Meshlet {
-	vec3 pos[32];
-	Tri tri_indices[32];
-	vec3 prim_colors[32];
-	int prim_count;
+	u8vec4 pos[MESHLET_SIZE];
+	Tri tri_indices[MESHLET_SIZE];
+	u8vec4 prim_colors[MESHLET_SIZE];
 	int vert_count;
+	int prim_count;
 };
 
 layout(scalar, buffer_reference) buffer MeshBuffer {
@@ -27,8 +30,8 @@ layout(scalar, push_constant) uniform T {
 	uint num_verts;
 } push_constants;
 
-layout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;
-layout(triangles, max_vertices = 32, max_primitives = 32) out;
+layout(local_size_x = MESHLET_SIZE, local_size_y = 1, local_size_z = 1) in;
+layout(triangles, max_vertices = MESHLET_SIZE, max_primitives = MESHLET_SIZE) out;
 
 // layout(location = 0) out VertexOutput
 // {
@@ -58,50 +61,20 @@ taskPayloadSharedEXT Task payload;
 void main() {
 	int verticesOut = push_constants.mesh_buffer.meshlets[gl_WorkGroupID.x].vert_count;
 	int primitivesOut = push_constants.mesh_buffer.meshlets[gl_WorkGroupID.x].prim_count;
-	SetMeshOutputsEXT(32, 32);
+	SetMeshOutputsEXT(verticesOut, primitivesOut);
+	//SetMeshOutputsEXT(32, 32);
 
 	mat4 mvp = push_constants.matrix;
 
-	Meshlet meshlet = push_constants.mesh_buffer.meshlets[gl_WorkGroupID.x];
+	//Meshlet meshlet = push_constants.mesh_buffer.meshlets[gl_WorkGroupID.x];
 	vec3 chunk_offset = vec3(push_constants.chunk_position * 16);
-	Tri tri = meshlet.tri_indices[gl_LocalInvocationID.x];
-	vec3 color = meshlet.prim_colors[gl_LocalInvocationID.x] / vec3(255.0);
+	Tri tri = push_constants.mesh_buffer.meshlets[gl_WorkGroupID.x].tri_indices[gl_LocalInvocationID.x];
+	vec3 color = push_constants.mesh_buffer.meshlets[gl_WorkGroupID.x].prim_colors[gl_LocalInvocationID.x].xyz / vec3(255.0);
 
-	gl_MeshVerticesEXT[gl_LocalInvocationID.x].gl_Position = mvp * vec4(meshlet.pos[gl_LocalInvocationID.x] + chunk_offset, 1);
+	gl_MeshVerticesEXT[gl_LocalInvocationID.x].gl_Position = mvp * vec4(push_constants.mesh_buffer.meshlets[gl_WorkGroupID.x].pos[gl_LocalInvocationID.x].xyz + chunk_offset, 1);
 
 	if(tri.indices.x != tri.indices.y) {
-		gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = tri.indices;
+		gl_PrimitiveTriangleIndicesEXT[gl_LocalInvocationID.x] = uvec3(tri.indices.xyz);
 	    primitiveOutput[gl_LocalInvocationID.x].color = vec4(color, 1.0);
 	}
-
-// 	uint sharedData = payload.offset * gl_NumWorkGroups.x;
-
-//     bool is_even = gl_LocalInvocationID.x % 2 == 0;
-// 	uint triId = gl_LocalInvocationID.x;
-// 	uint faceId = triId / 2;
-// 	uint vtx_offset = gl_WorkGroupID.x * 4;
-
-// 	vec3 color = push_constants.mesh_buffer.vertices[vtx_offset].color / vec3(255.0);
-
-// 	mat4 mvp = push_constants.matrix;
-
-// 	if (is_even) {
-// 		vec3 vertex0 = push_constants.mesh_buffer.vertices[vtx_offset].pos + push_constants.chunk_position * 16;
-// 		vec3 vertex1 = push_constants.mesh_buffer.vertices[vtx_offset + 1].pos + push_constants.chunk_position * 16;
-// 		gl_MeshVerticesEXT[0].gl_Position = mvp * vec4(vertex0, 1);
-// 		gl_MeshVerticesEXT[1].gl_Position = mvp * vec4(vertex1, 1);
-
-// 	} else {
-// 		vec3 vertex0 = push_constants.mesh_buffer.vertices[vtx_offset + 2].pos + push_constants.chunk_position * 16;
-// 		vec3 vertex1 = push_constants.mesh_buffer.vertices[vtx_offset + 3].pos + push_constants.chunk_position * 16;
-// 		gl_MeshVerticesEXT[2].gl_Position = mvp * vec4(vertex0, 1);
-// 		gl_MeshVerticesEXT[3].gl_Position = mvp * vec4(vertex1, 1);
-// 	}
-// 	if (is_even) {
-//     	gl_PrimitiveTriangleIndicesEXT[triId] = uvec3(0, 1, 2);
-// 	    primitiveOutput[triId].color = vec4(color, 1.0);
-//     } else {
-//     	gl_PrimitiveTriangleIndicesEXT[triId] = uvec3(0, 2, 3);
-// 	    primitiveOutput[triId].color = vec4(color, 1.0);
-//     }
 }

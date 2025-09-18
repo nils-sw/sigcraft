@@ -336,6 +336,7 @@ int main(int argc, char** argv) {
 
                     //printf("We are drawing %zu verts\n", mesh->num_verts);
                     assert(mesh->num_verts > 0);
+                    assert(mesh->meshlet_count > 0);
                     vk.cmdDrawMeshTasksEXT(cmdbuf, mesh->meshlet_count, 1, 1);
                 }
             });
