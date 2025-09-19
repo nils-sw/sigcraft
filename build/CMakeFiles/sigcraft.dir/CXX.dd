@@ -1,9 +1,0 @@
-ninja_dyndep_version = 1.0
-build CMakeFiles/sigcraft.dir/main.cpp.obj: dyndep
-
-build CMakeFiles/sigcraft.dir/camera.cpp.obj: dyndep
-
-build CMakeFiles/sigcraft.dir/chunk_mesh.cpp.obj: dyndep
-
-build CMakeFiles/sigcraft.dir/world.cpp.obj: dyndep
-
