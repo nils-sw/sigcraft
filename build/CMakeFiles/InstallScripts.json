@@ -1,0 +1,12 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/darkg/HAG/sigcraft/build/cmake_install.cmake",
+		"C:/Users/darkg/HAG/sigcraft/build/imr_build/cmake_install.cmake",
+		"C:/Users/darkg/HAG/sigcraft/build/imr_build/vk-bootstrap/cmake_install.cmake",
+		"C:/Users/darkg/HAG/sigcraft/build/imr_build/VulkanMemoryAllocator/cmake_install.cmake",
+		"C:/Users/darkg/HAG/sigcraft/build/imr_build/imr/cmake_install.cmake",
+		"C:/Users/darkg/HAG/sigcraft/build/enklume/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

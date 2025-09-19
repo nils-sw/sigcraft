@@ -1,0 +1,11 @@
+{
+"rules": [
+{
+"primary-output": "CMakeFiles\\sigcraft.dir\\camera.cpp.obj",
+"requires": [
+]
+}
+],
+"version": 0,
+"revision": 0
+}

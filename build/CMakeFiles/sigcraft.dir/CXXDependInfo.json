@@ -1,0 +1,50 @@
+{
+	"bmi-installation" : null,
+	"compiler-frontend-variant" : "GNU",
+	"compiler-id" : "GNU",
+	"compiler-simulate-id" : "",
+	"config" : "",
+	"cxx-modules" : {},
+	"database-info" : null,
+	"dir-cur-bld" : "C:/Users/darkg/HAG/sigcraft/build",
+	"dir-cur-src" : "C:/Users/darkg/HAG/sigcraft",
+	"dir-top-bld" : "C:/Users/darkg/HAG/sigcraft/build",
+	"dir-top-src" : "C:/Users/darkg/HAG/sigcraft",
+	"exports" : [],
+	"forward-modules-from-target-dirs" : [],
+	"include-dirs" : 
+	[
+		"C:\\Users\\darkg\\HAG\\imr_mesh\\imr\\include",
+		"C:\\Users\\darkg\\HAG\\imr_mesh\\vk-bootstrap\\src",
+		"C:\\Users\\darkg\\HAG\\imr_mesh\\VulkanMemoryAllocator\\include",
+		"C:\\Users\\darkg\\HAG\\sigcraft\\enklume\\include",
+		"C:\\VulkanSDK\\1.4.304.1\\include",
+		"C:\\Users\\darkg\\HAG\\shady\\include"
+	],
+	"language" : "CXX",
+	"linked-target-dirs" : [],
+	"module-dir" : "C:/Users/darkg/HAG/sigcraft/build/CMakeFiles/sigcraft.dir",
+	"sources" : 
+	{
+		"CMakeFiles/sigcraft.dir/camera.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/sigcraft/camera.cpp"
+		},
+		"CMakeFiles/sigcraft.dir/chunk_mesh.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/sigcraft/chunk_mesh.cpp"
+		},
+		"CMakeFiles/sigcraft.dir/main.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/sigcraft/main.cpp"
+		},
+		"CMakeFiles/sigcraft.dir/world.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/sigcraft/world.cpp"
+		}
+	}
+}

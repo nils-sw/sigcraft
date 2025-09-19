@@ -164,7 +164,8 @@ int main(int argc, char** argv) {
     auto prev_frame = imr_get_time_nano();
     float delta = 0;
 
-    camera = {{0, 0, 3}, {0, 0}, 60};
+    // camera = {{0, 0, 3}, {0, 0}, 60};
+    camera = {{150, 150, 200}, {3.14, 0.5}, 60};
 
     std::unique_ptr<imr::Image> depthBuffer;
     std::unique_ptr<imr::Buffer> mesh_buffer;
@@ -293,7 +294,7 @@ int main(int argc, char** argv) {
                 int player_chunk_x = camera.position.x / 16;
                 int player_chunk_z = camera.position.z / 16;
 
-                int radius = 12;
+                int radius = 24;
                 for (int dx = -radius; dx <= radius; dx++) {
                     for (int dz = -radius; dz <= radius; dz++) {
                         load_chunk(player_chunk_x + dx, player_chunk_z + dz);

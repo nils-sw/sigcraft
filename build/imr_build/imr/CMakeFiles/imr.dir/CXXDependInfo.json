@@ -1,0 +1,104 @@
+{
+	"bmi-installation" : null,
+	"compiler-frontend-variant" : "GNU",
+	"compiler-id" : "GNU",
+	"compiler-simulate-id" : "",
+	"config" : "",
+	"cxx-modules" : {},
+	"database-info" : null,
+	"dir-cur-bld" : "C:/Users/darkg/HAG/sigcraft/build/imr_build/imr",
+	"dir-cur-src" : "C:/Users/darkg/HAG/imr_mesh/imr",
+	"dir-top-bld" : "C:/Users/darkg/HAG/sigcraft/build",
+	"dir-top-src" : "C:/Users/darkg/HAG/sigcraft",
+	"exports" : [],
+	"forward-modules-from-target-dirs" : [],
+	"include-dirs" : 
+	[
+		"C:\\Users\\darkg\\HAG\\imr_mesh\\imr\\include",
+		"C:\\Users\\darkg\\HAG\\imr_mesh\\vk-bootstrap\\src",
+		"C:\\Users\\darkg\\HAG\\imr_mesh\\VulkanMemoryAllocator\\include",
+		"C:\\VulkanSDK\\1.4.304.1\\include",
+		"C:\\Users\\darkg\\HAG\\shady\\include"
+	],
+	"language" : "CXX",
+	"linked-target-dirs" : [],
+	"module-dir" : "C:/Users/darkg/HAG/sigcraft/build/imr_build/imr/CMakeFiles/imr.dir",
+	"sources" : 
+	{
+		"imr_build/imr/CMakeFiles/imr.dir/src/buffer.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/buffer.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/context.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/context.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/descriptor_bind_helper.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/descriptor_bind_helper.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/device.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/device.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/execute_commands.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/execute_commands.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/fps_counter.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/fps_counter.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/frame.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/frame.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/graphics_pipeline.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/graphics_pipeline.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/image.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/image.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/present_helpers.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/present_helpers.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/render_simplified.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/render_simplified.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/render_targets_helper.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/render_targets_helper.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/shader.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/shader.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/swapchain.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/swapchain.cpp"
+		},
+		"imr_build/imr/CMakeFiles/imr.dir/src/vma.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "C:/Users/darkg/HAG/imr_mesh/imr/src/vma.cpp"
+		}
+	}
+}

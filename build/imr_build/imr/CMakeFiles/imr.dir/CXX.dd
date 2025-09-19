@@ -1,0 +1,31 @@
+ninja_dyndep_version = 1.0
+build imr_build/imr/CMakeFiles/imr.dir/src/context.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/device.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/swapchain.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/buffer.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/image.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/fps_counter.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/shader.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/graphics_pipeline.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/frame.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/present_helpers.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/render_simplified.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/descriptor_bind_helper.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/render_targets_helper.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/execute_commands.cpp.obj: dyndep
+
+build imr_build/imr/CMakeFiles/imr.dir/src/vma.cpp.obj: dyndep
+
