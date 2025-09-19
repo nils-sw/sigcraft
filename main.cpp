@@ -145,7 +145,8 @@ int main(int argc, char** argv) {
     auto prev_frame = imr_get_time_nano();
     float delta = 0;
 
-    camera = {{0, 0, 3}, {0, 0}, 60};
+    // camera = {{0, 0, 3}, {0, 0}, 60};
+    camera = {{150, 150, 200}, {3.14, 0.5}, 60};
 
     std::unique_ptr<imr::Image> depthBuffer;
 
